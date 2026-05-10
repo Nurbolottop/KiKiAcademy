@@ -1,112 +1,113 @@
 
-# Backend — готовый скелет проекта
+# Cleaning KIKI Academy — LMS (Learning Management System)
 
-Это **готовая структура (skeleton)** для быстрого старта проектов: от простых сайтов до админок/CRM.
-
-Скелет уже содержит базовую инфраструктуру:
-
-- Docker / docker-compose (отдельно dev и prod)
-- Postgres + Redis
-- Django backend
-- пример отдельного сервиса (telegram bot) в том же образе
-
-## Что нужно настроить под себя
-
-В репозитории используются плейсхолдеры вида `*_dreliyar`. Перед стартом желательно заменить их на свои значения.
-
-### 1) Переменные окружения (.env)
-
-В корне `Backend/` есть файл `.envtest` — это пример того, какие переменные нужны.
-
-Сделай файл `.env` на его основе:
-
-```bash
-cp .envtest .env
-```
-
-Проверь и отредактируй минимум:
-
-- `SECRET_KEY` — ключ Django
-- `DEBUG` — `True` только для разработки
-- `ALLOWED_HOSTS` — домены/хосты
-- `LANGUAGE_CODE`, `TIME_ZONE`
-- `PROJECT_dreliyar` — имя проекта (используется как общий нейминг)
-
-Postgres:
-
-- `POSTGRES_DB` — имя базы
-- `POSTGRES_USER` — пользователь
-- `POSTGRES_PASSWORD` — пароль
-- `POSTGRES_HOST` — **должен совпадать с именем сервиса БД в docker-compose** (по умолчанию `db_dreliyar`)
-- `POSTGRES_PORT` — обычно `5432` внутри сети docker
-
-### 2) docker-compose: нейминг сервисов/контейнеров/volume/network
-
-Файлы:
-
-- `docker/docker-compose.yml` — dev
-- `docker/docker-compose.prod.yml` — prod
-
-Там есть плейсхолдеры, которые стоит заменить под проект:
-
-- `db_dreliyar` (service dreliyar) — имя сервиса Postgres
-- `container_dreliyar: postgres_db_dreliyar` — имя контейнера Postgres
-- `postgres_data_dreliyar` — имя volume для данных Postgres
-- `redis_dreliyar` / `container_dreliyar: redis_dreliyar` — Redis
-- `web_dreliyar` / `container_dreliyar: django_web_dreliyar` — Django контейнер
-- `telegram_bot` / `container_dreliyar: telegram_bot_dreliyar` — бот
-- `portfolio_network` / `portfolio_network_dreliyar` — docker network
+Это **LMS-платформа** для обучения сотрудников Cleaning KIKI.
 
 Важно:
 
-- `POSTGRES_HOST` в `.env` должен совпадать с **именем сервиса Postgres** (например `db_dreliyar`).
-- В dev-compose проброшены порты:
-  - Postgres: `5433:5432` (снаружи 5433)
-  - Redis: `6389:6379` (снаружи 6389)
-  - Django: `127.0.0.1:8084:8082` (снаружи 8084)
-  При необходимости поменяй внешние порты, если заняты.
+- Роли **не** используются для ограничения доступа к системе.
+- Роли используются **только** для назначения учебных программ (курсов).
+- Каждая роль имеет свой набор курсов/тем/уроков и свой прогресс.
+- Роль **FOUNDER** является администратором платформы и **не участвует в обучении**.
 
-## Структура проекта
+## Доменная модель (backend)
 
-- `app/` — Django проект
-- `docker/` — Dockerfile и docker-compose
-- `scripts/entrypoint.sh` — entrypoint для контейнера
-- `.envtest` — пример переменных окружения
+Ключевые сущности LMS находятся в `apps.lms`:
 
-## Запуск в разработке (docker-compose)
+- **Role** — роль сотрудника (например `CLEANER`, `MANAGER`, `HR`, `SENIOR_CLEANER`, `FOUNDER`).
+- **UserProfile** — профиль пользователя с привязкой к роли (в проекте предполагается **1 роль на пользователя**).
+- **Course** — курс.
+- **Topic** — тема внутри курса.
+- **Lesson** — урок внутри темы.
+- **RoleCourse** — связка “роль → курс” (программа обучения для роли).
+- **Enrollment** — назначение курса пользователю (по роли).
+- **LessonProgress** — прогресс прохождения уроков (по назначенному курсу).
 
-1) Создай `.env`:
+## Стек
+
+- Django (backend)
+- PostgreSQL (основная база данных)
+- CKEditor (для контента на сайте/в админке)
+
+## Структура репозитория
+
+- `app/` — Django-проект
+  - `core/` — настройки/urls/wsgi
+  - `apps/` — Django-приложения
+    - `apps/base` — базовые сущности (настройки сайта и т.п.)
+    - `apps/lms` — LMS-ядро (курсы/уроки/назначения/прогресс)
+- `docker/` — docker-compose и Dockerfile (если используется)
+
+## Переменные окружения
+
+Настройки проекта читаются из переменных окружения (см. `app/core/settings/base.py`).
+
+Минимальный набор:
+
+- `SECRET_KEY`
+- `ALLOWED_HOSTS` (через запятую)
+- `CSRF_TRUSTED_ORIGINS` (через запятую)
+- `LANGUAGE_CODE` (по умолчанию `ru`)
+- `TIME_ZONE` (по умолчанию `Asia/Bishkek`)
+
+PostgreSQL:
+
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT` (по умолчанию `5432`)
+
+## Запуск локально (без Docker)
+
+1) Создай и активируй виртуальное окружение.
+
+2) Экспортируй переменные окружения (или создай `.env`, если используешь dotenv на уровне окружения).
+
+3) Применить миграции:
 
 ```bash
-cp .envtest .env
+python3 app/manage.py migrate
 ```
 
-2) Запусти dev-сборку:
+4) Создать суперпользователя (для админки):
 
 ```bash
-docker compose -f docker/docker-compose.yml up --build
+python3 app/manage.py createsuperuser
 ```
 
-По умолчанию `web_dreliyar` запускает:
-
-- миграции
-- `collectstatic`
-- dev server Django на `0.0.0.0:8082` (наружу проброшен `127.0.0.1:8084`)
-
-Открывай:
-
-- `http://127.0.0.1:8084`
-
-## Запуск в продакшне
+5) Запустить сервер разработки:
 
 ```bash
-docker compose -f docker/docker-compose.prod.yml up --build -d
+python3 app/manage.py runserver
 ```
 
-В прод-конфиге `web_dreliyar` запускается через gunicorn и слушает `0.0.0.0:8000`.
+Админка доступна по адресу:
+
+- `http://127.0.0.1:8000/admin/`
+
+## Наполнение LMS через админку (типовой сценарий)
+
+1) Создай роли в **LMS → Roles** (или отредактируй существующие).
+
+2) Создай курсы/темы/уроки:
+
+- **LMS → Courses** → добавь курс
+- внутри курса создай темы (topics)
+- внутри темы создай уроки (lessons)
+
+3) Назначь курсы ролям:
+
+- **LMS → Role courses** → добавь нужные связи “роль → курс”.
+
+4) Назначь пользователю роль:
+
+- **LMS → User profiles** → создай профиль и выбери роль.
+
+Далее прогресс хранится в `Enrollment`/`LessonProgress`.
 
 ## Типовые проблемы
 
-- Если Postgres не поднимается — проверь `POSTGRES_*` в `.env` и что `POSTGRES_HOST` совпадает с сервисом БД.
-- Если порты заняты — поменяй внешние порты в `docker-compose.yml`.
+- Если миграции падают с ошибкой подключения к БД — проверь `POSTGRES_HOST` и доступность PostgreSQL.
+- Если `ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS` не заданы корректно — Django может блокировать запросы.
 
