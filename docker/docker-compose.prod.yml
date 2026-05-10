@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  db_kikiacademy:
+    image: postgres:14
+    container_name: postgres_db_kikiacademy
+    env_file:
+      - ../.env
+    volumes:
+      - postgres_data_kikiacademy:/var/lib/postgresql/data
+    networks:
+      - portfolio_network_kikiacademy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_kikiacademy:
+    image: redis:6
+    container_name: redis_kikiacademy
+    networks:
+      - portfolio_network_kikiacademy
+
+  web_kikiacademy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: django_web_kikiacademy
+    command: sh -c "/entrypoint.sh && gunicorn core.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - ../app:/app
+      - ../app/static:/app/static
+      - ../app/media:/app/media
+    env_file:
+      - ../.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings.prod
+    depends_on:
+      db_kikiacademy:
+        condition: service_healthy
+      redis_kikiacademy:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    networks:
+      - portfolio_network_kikiacademy
+
+  telegram_bot_kikiacademy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: telegram_bot_kikiacademy
+    command: python manage.py bot
+    volumes:
+      - ../app:/app
+    env_file:
+      - ../.env
+    depends_on:
+      - db_kikiacademy
+      - web_kikiacademy
+    networks:
+      - portfolio_network_kikiacademy
+
+networks:
+  portfolio_network_kikiacademy:
+    driver: bridge
+
+volumes:
+  postgres_data_kikiacademy:

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="KIKI Academy — Главная" />
+  <title>KIKI Academy — Главная</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header__inner">
+    <a class="header__brand" href="#">
+      <div class="header__logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      </div>
+      <span class="header__name">KIKI Academy</span>
+    </a>
+    <div class="header__right">
+      <div class="header__user">
+        <div class="header__avatar">АН</div>
+        <div class="header__user-info">
+          <span class="header__user-name">Нурсултан А.</span>
+          <span class="header__user-role">Клинер</span>
+        </div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" aria-label="Переключить тему">
+        <svg class="i-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="i-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ MAIN ════════════════════════════════════════════════ -->
+<main class="main">
+<div class="container">
+
+  <!-- ── Приветствие ─────────────────────────────── -->
+  <div class="greeting">
+    <h1 class="greeting__title">Добро пожаловать, Нурсултан! 👋</h1>
+    <p class="greeting__sub">Продолжайте обучение — вы на верном пути</p>
+  </div>
+
+  <!-- ── Карточка сотрудника + Прогресс ──────────── -->
+  <div class="top-grid">
+
+    <!-- Карточка сотрудника -->
+    <div class="emp-card card">
+      <div class="emp-card__header">
+        <div class="emp-card__avatar">АН</div>
+        <div>
+          <div class="emp-card__name">Айбек уулу Нурсултан</div>
+          <div class="emp-card__role-badge">Клинер</div>
+        </div>
+      </div>
+      <div class="emp-card__rows">
+        <div class="emp-card__row">
+          <span class="emp-card__label">Тип</span>
+          <span class="emp-card__value">Основной сотрудник</span>
+        </div>
+        <div class="emp-card__row">
+          <span class="emp-card__label">Статус</span>
+          <span class="emp-card__value">
+            <span class="status-badge status-badge--active">
+              <span class="status-dot"></span>Активный
+            </span>
+          </span>
+        </div>
+        <div class="emp-card__row">
+          <span class="emp-card__label">Баланс</span>
+          <span class="emp-card__value balance">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            120 баллов
+          </span>
+        </div>
+        <div class="emp-card__row">
+          <span class="emp-card__label">Прогресс</span>
+          <span class="emp-card__value">3 из 10 тем</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Прогресс + Быстрые действия -->
+    <div class="progress-card card">
+      <div class="progress-card__top">
+        <span class="progress-card__label">Прогресс обучения</span>
+        <span class="progress-card__pct">30%</span>
+      </div>
+      <div class="progress-track" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-fill" style="width:0%" data-target="30"></div>
+      </div>
+      <p class="progress-card__text">Вы прошли <strong>30%</strong> обучения</p>
+
+      <div class="progress-stats">
+        <div class="progress-stat">
+          <span class="progress-stat__num">3</span>
+          <span class="progress-stat__lbl">Пройдено</span>
+        </div>
+        <div class="progress-stat">
+          <span class="progress-stat__num">1</span>
+          <span class="progress-stat__lbl">В процессе</span>
+        </div>
+        <div class="progress-stat">
+          <span class="progress-stat__num">6</span>
+          <span class="progress-stat__lbl">Осталось</span>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="qa-btn qa-btn--primary" id="btn-continue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Продолжить обучение
+        </button>
+        <button class="qa-btn qa-btn--secondary" id="btn-search-focus">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Найти тему
+        </button>
+        <button class="qa-btn qa-btn--secondary" id="btn-results">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Мои результаты
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Поиск ──────────────────────────────────── -->
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg class="search-box__icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input id="search-input" class="search-box__input" type="search"
+        placeholder="Поиск по темам..." autocomplete="off" />
+      <button class="search-box__clear" id="search-clear" aria-label="Очистить" style="display:none">✕</button>
+    </div>
+  </div>
+
+  <!-- ── КАТЕГОРИИ (Accordion) ──────────────────── -->
+  <section class="categories-section">
+    <h2 class="section-title">Категории обучения</h2>
+
+    <div class="accordion" id="accordion">
+
+      <!-- ─ Категория 1 ─ -->
+      <div class="acc-item" data-cat="1">
+        <button class="acc-header" aria-expanded="false">
+          <span class="acc-header__icon">📦</span>
+          <span class="acc-header__title">Базовый уровень</span>
+          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body__inner">
+
+            <!-- 🔥 Блок «Продолжить обучение» -->
+            <div class="continue-block">
+              <div class="continue-block__label">🔥 Продолжить обучение</div>
+              <div class="continue-card">
+                <div class="continue-card__left">
+                  <div class="continue-card__step">Шаг 3 из 4</div>
+                  <div class="continue-card__title">Поведение на объекте</div>
+                  <div class="continue-card__desc">Правила общения и поведения с клиентами</div>
+                  <div class="continue-card__progress">
+                    <div class="continue-card__progress-track">
+                      <div class="continue-card__progress-fill" style="width:40%"></div>
+                    </div>
+                    <span class="continue-card__progress-txt">2 из 5 шагов</span>
+                  </div>
+                </div>
+                <button class="continue-card__btn">▶ Продолжить</button>
+              </div>
+              <div class="continue-next">Следующая: <strong>Инструменты и оборудование</strong></div>
+            </div>
+
+            <!-- 📚 Все темы -->
+            <div class="all-themes">
+              <div class="all-themes__label">📚 Все темы</div>
+              <div class="theme-list">
+
+                <div class="tl-item tl-item--done" data-name="Вводное обучение">
+                  <div class="tl-status">✔</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Вводное обучение</div>
+                    <div class="tl-desc">Знакомство с компанией и правилами</div>
+                  </div>
+                  <button class="tl-btn tl-btn--done">Повторить</button>
+                </div>
+
+                <div class="tl-item tl-item--done" data-name="Внешний вид">
+                  <div class="tl-status">✔</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Внешний вид</div>
+                    <div class="tl-desc">Правила формы одежды</div>
+                  </div>
+                  <button class="tl-btn tl-btn--done">Повторить</button>
+                </div>
+
+                <div class="tl-item tl-item--current" data-name="Поведение на объекте">
+                  <div class="tl-status">▶</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Поведение на объекте</div>
+                    <div class="tl-desc">Правила общения и поведения</div>
+                  </div>
+                  <button class="tl-btn tl-btn--current">Продолжить</button>
+                </div>
+
+                <div class="tl-item tl-item--locked" data-name="Инструменты и оборудование">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Инструменты и оборудование</div>
+                    <div class="tl-desc">Виды и использование инструментов</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Категория 2 ─ -->
+      <div class="acc-item" data-cat="2">
+        <button class="acc-header" aria-expanded="false">
+          <span class="acc-header__icon">🧹</span>
+          <span class="acc-header__title">Стандарты уборки</span>
+          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body__inner">
+            <div class="locked-banner">
+              <span class="locked-banner__icon">🔒</span>
+              <span>Завершите «Базовый уровень», чтобы открыть этот раздел</span>
+            </div>
+            <div class="all-themes">
+              <div class="all-themes__label">📚 Все темы</div>
+              <div class="theme-list">
+                <div class="tl-item tl-item--locked" data-name="Генеральная уборка">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Генеральная уборка</div>
+                    <div class="tl-desc">Пошаговый порядок уборки</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+                <div class="tl-item tl-item--locked" data-name="Поддерживающая уборка">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Поддерживающая уборка</div>
+                    <div class="tl-desc">Ежедневный уход за объектом</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+                <div class="tl-item tl-item--locked" data-name="Уборка после ремонта">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Уборка после ремонта</div>
+                    <div class="tl-desc">Особенности постремонтной уборки</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Категория 3 ─ -->
+      <div class="acc-item" data-cat="3">
+        <button class="acc-header" aria-expanded="false">
+          <span class="acc-header__icon">🧪</span>
+          <span class="acc-header__title">Работа с химией</span>
+          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body__inner">
+            <div class="locked-banner">
+              <span class="locked-banner__icon">🔒</span>
+              <span>Завершите «Стандарты уборки», чтобы открыть этот раздел</span>
+            </div>
+            <div class="all-themes">
+              <div class="all-themes__label">📚 Все темы</div>
+              <div class="theme-list">
+                <div class="tl-item tl-item--locked" data-name="Виды средств">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Виды средств</div>
+                    <div class="tl-desc">Классификация моющих средств</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+                <div class="tl-item tl-item--locked" data-name="Дозировка и разбавление">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Дозировка и разбавление</div>
+                    <div class="tl-desc">Правила работы с концентратами</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Категория 4 ─ -->
+      <div class="acc-item" data-cat="4">
+        <button class="acc-header" aria-expanded="false">
+          <span class="acc-header__icon">⛑️</span>
+          <span class="acc-header__title">Техника безопасности</span>
+          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="acc-body">
+          <div class="acc-body__inner">
+            <div class="locked-banner">
+              <span class="locked-banner__icon">🔒</span>
+              <span>Завершите «Работа с химией», чтобы открыть этот раздел</span>
+            </div>
+            <div class="all-themes">
+              <div class="all-themes__label">📚 Все темы</div>
+              <div class="theme-list">
+                <div class="tl-item tl-item--locked" data-name="Охрана труда">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Охрана труда</div>
+                    <div class="tl-desc">Базовые правила безопасности</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+                <div class="tl-item tl-item--locked" data-name="Действия при аварии">
+                  <div class="tl-status">🔒</div>
+                  <div class="tl-body">
+                    <div class="tl-title">Действия при аварии</div>
+                    <div class="tl-desc">Что делать в нештатной ситуации</div>
+                  </div>
+                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /accordion -->
+
+    <div class="no-results" id="no-results" style="display:none">
+      <div class="no-results__icon">🔍</div>
+      <p class="no-results__text">Ничего не найдено</p>
+      <p class="no-results__sub">Попробуйте другой запрос</p>
+    </div>
+
+  </section>
+
+</div>
+</main>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
