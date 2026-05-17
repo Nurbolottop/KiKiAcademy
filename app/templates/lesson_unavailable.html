@@ -1,0 +1,20 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8">
+  <title>KIKI Academy</title>
+  <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+</head>
+<body>
+<main class="main">
+<div class="container">
+  <div class="empty-state">
+    <div class="empty-state__icon">🔒</div>
+    <h3 class="empty-state__title">{% trans "Урок недоступен" %}</h3>
+    <p class="empty-state__text">{% trans "У вас нет доступа к этому уроку или он ещё не опубликован." %}</p>
+    <a href="{% url 'dashboard' %}" class="btn-login" style="display:inline-block;padding:12px 24px;margin-top:16px;width:auto;text-decoration:none;">{% trans "К курсам" %}</a>
+  </div>
+</div>
+</main>
+</body>
+</html>

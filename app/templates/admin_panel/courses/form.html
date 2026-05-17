@@ -1,0 +1,64 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% if mode == 'create' %}{% trans "Новый курс" %}{% else %}{{ course.title }}{% endif %}{% endblock %}
+{% block heading %}
+  {% if mode == 'create' %}{% trans "Новый курс" %}{% else %}{% trans "Редактирование курса" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<form class="form" method="post">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="form__errors">{{ form.non_field_errors }}</div>{% endif %}
+
+  <div class="form__grid">
+    <div class="form__field form__field--full">
+      <label>{% trans "Название курса" %}</label>
+      {{ form.title }}
+      {% if form.title.errors %}<div class="form__error">{{ form.title.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form__field">
+      <label>{% trans "Иконка (эмодзи)" %}</label>
+      {{ form.icon }}
+      <div class="form__help">{% trans "Например: 📦 🧹 🧪 ⛑️" %}</div>
+    </div>
+
+    <div class="form__field">
+      <label>{% trans "Порядок" %}</label>
+      {{ form.order }}
+      <div class="form__help">{% trans "Меньшее значение — выше в списке" %}</div>
+    </div>
+
+    <div class="form__field form__field--full">
+      <label>{% trans "Описание" %}</label>
+      {{ form.description }}
+    </div>
+
+    <div class="form__field form__field--full">
+      <label>{{ form.roles.label }}</label>
+      <div class="checkbox-group">{{ form.roles }}</div>
+      <div class="form__help">{{ form.roles.help_text }}</div>
+    </div>
+  </div>
+
+  <div class="form__actions">
+    <button type="submit" class="btn btn--primary">
+      {% if mode == 'create' %}{% trans "Создать" %}{% else %}{% trans "Сохранить" %}{% endif %}
+    </button>
+    <a class="btn btn--ghost" href="{% if course %}{% url 'admin_panel:course_detail' course.pk %}{% else %}{% url 'admin_panel:courses' %}{% endif %}">{% trans "Отмена" %}</a>
+
+    {% if mode == 'edit' %}
+    <form method="post" action="{% url 'admin_panel:course_delete' course.pk %}"
+          data-ajax data-confirm="{% trans 'Удалить курс со всеми темами и уроками?' %}"
+          data-confirm-title="{% trans 'Удалить курс' %}" data-confirm-button="{% trans 'Удалить' %}"
+          style="margin-left:auto;display:inline-block;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--danger-outline">{% trans "Удалить курс" %}</button>
+    </form>
+    {% endif %}
+  </div>
+</form>
+
+{% endblock %}

@@ -151,8 +151,6 @@
   const submitBtn = document.getElementById('submit-btn');
 
   form.addEventListener('submit', function (e) {
-    e.preventDefault();
-
     let valid = true;
 
     // Phone
@@ -173,14 +171,7 @@
 
     if (!valid) return;
 
-    // Simulate loading state (replace with real fetch when backend is ready)
     setLoading(true);
-
-    setTimeout(() => {
-      // Placeholder — backend не подключён
-      setLoading(false);
-      showFieldError('field-password', 'Неверный номер телефона или пароль');
-    }, 1400);
   });
 
   function setLoading(state) {

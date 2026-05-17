@@ -1,0 +1,47 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Сотрудники" %}{% endblock %}
+{% block heading %}{% trans "Сотрудники" %}{% endblock %}
+
+{% block header_actions %}
+  <a class="btn btn--primary" href="{% url 'admin_panel:employee_create' %}">+ {% trans "Добавить сотрудника" %}</a>
+{% endblock %}
+
+{% block content %}
+
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ search }}" placeholder="{% trans 'Поиск по имени, телефону, email…' %}" class="filters__search">
+
+  <select name="status" class="filters__select">
+    <option value="">{% trans "Все статусы" %}</option>
+    {% for value, label in statuses %}
+      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="role" class="filters__select">
+    <option value="">{% trans "Все роли" %}</option>
+    {% for role in roles %}
+      <option value="{{ role.id }}" {% if role_id == role.id|stringformat:'s' %}selected{% endif %}>{{ role.title }}</option>
+    {% endfor %}
+  </select>
+
+  <noscript><button type="submit" class="btn btn--secondary">{% trans "Применить" %}</button></noscript>
+  {% if search or status or role_id %}
+    <a class="btn btn--ghost" href="{% url 'admin_panel:employees' %}">{% trans "Сбросить" %}</a>
+  {% endif %}
+</form>
+
+<div class="bulk-toolbar" data-bulk-toolbar data-bulk-url="{% url 'admin_panel:employees_bulk' %}">
+  <span>{% trans "Выбрано" %}: <span class="bulk-toolbar__count" data-bulk-counter>0</span></span>
+  <button type="button" class="btn btn--small btn--success" data-bulk-action="activate">{% trans "Активировать" %}</button>
+  <button type="button" class="btn btn--small btn--warning" data-bulk-action="block" data-confirm-type="warning">{% trans "Заблокировать" %}</button>
+  <button type="button" class="btn btn--small btn--danger" data-bulk-action="fire" data-confirm-type="danger">{% trans "Уволить" %}</button>
+</div>
+
+<div data-table-target>
+  {% include 'admin_panel/employees/_table.html' %}
+</div>
+
+{% endblock %}

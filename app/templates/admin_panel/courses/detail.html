@@ -1,0 +1,76 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ course.title }}{% endblock %}
+{% block heading %}
+  <span class="page-title__icon">{{ course.icon|default:"📚" }}</span>
+  {{ course.title }}
+{% endblock %}
+
+{% block header_actions %}
+  <a class="btn btn--secondary" href="{% url 'admin_panel:course_edit' course.pk %}">{% trans "Редактировать курс" %}</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="breadcrumb">
+  <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
+  <span>›</span>
+  <span>{{ course.title }}</span>
+</div>
+
+{% if course.description %}
+  <p class="text-dim" style="max-width:900px;">{{ course.description }}</p>
+{% endif %}
+
+<div class="course-meta">
+  <span class="text-dim">{% trans "Роли" %}:</span>
+  {% for cr in course.course_roles.all %}
+    <span class="tag">{{ cr.role.title }}</span>
+  {% empty %}
+    <span class="text-dim">{% trans "не назначен ни одной роли" %}</span>
+  {% endfor %}
+</div>
+
+<section class="section">
+  <header class="section__head">
+    <h2 class="section__title">{% trans "Темы курса" %}</h2>
+    <button type="button" class="btn btn--primary btn--small" data-show-form="topic-create">+ {% trans "Добавить тему" %}</button>
+  </header>
+
+  <form id="topic-create" class="inline-form" method="post" action="{% url 'admin_panel:topic_create' course.pk %}"
+        data-ajax data-reload-on-success="true" hidden>
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="{% trans 'Название темы' %}" required class="inline-form__input">
+    <button type="submit" class="btn btn--primary btn--small">{% trans "Создать" %}</button>
+    <button type="button" class="btn btn--ghost btn--small" data-hide-form="topic-create">{% trans "Отмена" %}</button>
+  </form>
+
+  {% if course.topics.all %}
+  <div class="topic-list" data-reorder-list data-reorder-url="{% url 'admin_panel:topics_reorder' course.pk %}">
+    {% for topic in course.topics.all %}
+    <div class="topic-row" data-id="{{ topic.id }}" data-href="{% url 'admin_panel:topic_detail' course.pk topic.id %}">
+      <div class="topic-row__handle" data-drag-handle title="{% trans 'Перетащить' %}">⋮⋮</div>
+      <div class="topic-row__order">{{ forloop.counter }}</div>
+      <div class="topic-row__body">
+        <div class="topic-row__title">{{ topic.title }}</div>
+        <div class="topic-row__meta">{{ topic.lessons.count }} {% trans "уроков" %}</div>
+      </div>
+      <div class="topic-row__actions" data-no-link>
+        <a class="btn btn--small btn--ghost" href="{% url 'admin_panel:topic_detail' course.pk topic.id %}">{% trans "Открыть" %}</a>
+        <form method="post" action="{% url 'admin_panel:topic_delete' course.pk topic.id %}"
+              data-ajax data-confirm="{% trans 'Удалить тему со всеми уроками?' %}"
+              data-confirm-button="{% trans 'Удалить' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--small btn--danger-outline">×</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-dim">{% trans "В курсе пока нет тем. Добавьте первую тему выше." %}</p>
+  {% endif %}
+</section>
+
+{% endblock %}

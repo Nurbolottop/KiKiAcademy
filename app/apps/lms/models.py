@@ -5,14 +5,14 @@ from django.db import models
 class Role(models.Model):
     class Code(models.TextChoices):
         CLEANER = 'CLEANER', 'Cleaner'
-        SENIOR_CLEANER = 'SENIOR_CLEANER', 'Senior cleaner'
         MANAGER = 'MANAGER', 'Manager'
+        OPERATOR = 'OPERATOR', 'Operator'
         HR = 'HR', 'HR'
         FOUNDER = 'FOUNDER', 'Founder'
 
-    code = models.CharField(max_length=32, unique=True, choices=Code.choices)
-    title = models.CharField(max_length=100)
-    is_learning_participant = models.BooleanField(default=True)
+    code = models.CharField(max_length=32, unique=True, choices=Code.choices, verbose_name='Код')
+    title = models.CharField(max_length=100, verbose_name='Название')
+    is_learning_participant = models.BooleanField(default=True, verbose_name='Участвует в обучении')
 
     class Meta:
         verbose_name = 'Роль'
@@ -23,8 +23,17 @@ class Role(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
-    role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='users')
+    class Status(models.TextChoices):
+        ACTIVE = 'ACTIVE', 'Активен'
+        BLOCKED = 'BLOCKED', 'Заблокирован'
+        FIRED = 'FIRED', 'Уволен'
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile', verbose_name='Пользователь')
+    roles = models.ManyToManyField(Role, related_name='users', blank=True, verbose_name='Роли')
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE, verbose_name='Статус')
+    points = models.PositiveIntegerField(default=0, verbose_name='Баллы')
+    hired_at = models.DateField(auto_now_add=True, verbose_name='Дата найма')
+    fired_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата увольнения')
 
     class Meta:
         verbose_name = 'Профиль пользователя'
@@ -33,33 +42,36 @@ class UserProfile(models.Model):
     def __str__(self) -> str:
         return str(self.user)
 
+    @property
+    def is_employed(self) -> bool:
+        return self.status == self.Status.ACTIVE
+
 
 class Course(models.Model):
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    is_published = models.BooleanField(default=False)
+    title = models.CharField(max_length=200, verbose_name='Название')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    icon = models.CharField(max_length=8, blank=True, default='📚', verbose_name='Иконка')
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Курс'
         verbose_name_plural = 'Курсы'
+        ordering = ['order', 'id']
 
     def __str__(self) -> str:
         return self.title
 
 
 class Topic(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='topics')
-    title = models.CharField(max_length=200)
-    order = models.PositiveIntegerField(default=0)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='topics', verbose_name='Курс')
+    title = models.CharField(max_length=200, verbose_name='Название')
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
 
     class Meta:
         verbose_name = 'Тема'
         verbose_name_plural = 'Темы'
         ordering = ['course_id', 'order', 'id']
-        constraints = [
-            models.UniqueConstraint(fields=['course', 'order'], name='uniq_topic_order_per_course'),
-        ]
 
     def __str__(self) -> str:
         return f"{self.course}: {self.title}"
@@ -67,33 +79,85 @@ class Topic(models.Model):
 
 class Lesson(models.Model):
     class Kind(models.TextChoices):
-        TEXT = 'TEXT', 'Text'
-        VIDEO = 'VIDEO', 'Video'
-        QUIZ = 'QUIZ', 'Quiz'
+        CONTENT = 'CONTENT', 'Контент'
+        QUIZ = 'QUIZ', 'Тест'
 
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='lessons')
-    title = models.CharField(max_length=200)
-    order = models.PositiveIntegerField(default=0)
-    kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.TEXT)
-    content = models.TextField(blank=True)
-    is_published = models.BooleanField(default=False)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='lessons', verbose_name='Тема')
+    title = models.CharField(max_length=200, verbose_name='Название')
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
+    kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.CONTENT, verbose_name='Тип')
+    description = models.TextField(blank=True, verbose_name='Описание / введение')
+    is_published = models.BooleanField(default=True, verbose_name='Опубликован')
 
     class Meta:
         verbose_name = 'Урок'
         verbose_name_plural = 'Уроки'
         ordering = ['topic_id', 'order', 'id']
-        constraints = [
-            models.UniqueConstraint(fields=['topic', 'order'], name='uniq_lesson_order_per_topic'),
-        ]
 
     def __str__(self) -> str:
         return f"{self.topic}: {self.title}"
 
 
+class LessonBlock(models.Model):
+    """Гибкий блок контента урока: текст, изображение или видео."""
+    class Kind(models.TextChoices):
+        TEXT = 'TEXT', 'Текст'
+        IMAGE = 'IMAGE', 'Изображение'
+        VIDEO = 'VIDEO', 'Видео'
+
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='blocks', verbose_name='Урок')
+    kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.TEXT, verbose_name='Тип блока')
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
+
+    text = models.TextField(blank=True, verbose_name='Текст')
+    image = models.ImageField(upload_to='lessons/images/', blank=True, null=True, verbose_name='Изображение')
+    caption = models.CharField(max_length=255, blank=True, verbose_name='Подпись')
+    video_url = models.URLField(blank=True, verbose_name='URL видео (YouTube / Vimeo)')
+
+    class Meta:
+        verbose_name = 'Блок урока'
+        verbose_name_plural = 'Блоки урока'
+        ordering = ['lesson_id', 'order', 'id']
+
+    def __str__(self) -> str:
+        return f"{self.lesson} · {self.get_kind_display()} #{self.order}"
+
+
+class Question(models.Model):
+    """Вопрос теста (для уроков типа QUIZ)."""
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='questions', verbose_name='Урок')
+    text = models.TextField(verbose_name='Текст вопроса')
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
+
+    class Meta:
+        verbose_name = 'Вопрос'
+        verbose_name_plural = 'Вопросы'
+        ordering = ['lesson_id', 'order', 'id']
+
+    def __str__(self) -> str:
+        return self.text[:60]
+
+
+class Answer(models.Model):
+    """Вариант ответа на вопрос."""
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers', verbose_name='Вопрос')
+    text = models.CharField(max_length=500, verbose_name='Текст ответа')
+    is_correct = models.BooleanField(default=False, verbose_name='Правильный')
+    order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
+
+    class Meta:
+        verbose_name = 'Ответ'
+        verbose_name_plural = 'Ответы'
+        ordering = ['question_id', 'order', 'id']
+
+    def __str__(self) -> str:
+        return self.text[:60]
+
+
 class RoleCourse(models.Model):
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='role_courses')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_roles')
-    is_required = models.BooleanField(default=True)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='role_courses', verbose_name='Роль')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_roles', verbose_name='Курс')
+    is_required = models.BooleanField(default=True, verbose_name='Обязательный')
 
     class Meta:
         verbose_name = 'Курс для роли'
@@ -107,9 +171,9 @@ class RoleCourse(models.Model):
 
 
 class Enrollment(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='enrollments')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
-    assigned_role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='enrollments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='enrollments', verbose_name='Пользователь')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments', verbose_name='Курс')
+    assigned_role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='enrollments', verbose_name='Роль на момент назначения')
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -129,9 +193,9 @@ class Enrollment(models.Model):
 
 
 class LessonProgress(models.Model):
-    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='lesson_progress')
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progress_items')
-    is_completed = models.BooleanField(default=False)
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='lesson_progress', verbose_name='Назначение')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progress_items', verbose_name='Урок')
+    is_completed = models.BooleanField(default=False, verbose_name='Завершён')
     completed_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 

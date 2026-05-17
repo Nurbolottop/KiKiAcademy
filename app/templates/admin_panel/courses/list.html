@@ -1,0 +1,47 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Курсы" %}{% endblock %}
+{% block heading %}{% trans "Курсы" %}{% endblock %}
+
+{% block header_actions %}
+  <a class="btn btn--primary" href="{% url 'admin_panel:course_create' %}">+ {% trans "Создать курс" %}</a>
+{% endblock %}
+
+{% block content %}
+
+{% if courses %}
+<div class="course-grid" data-reorder-list data-reorder-url="{% url 'admin_panel:courses_reorder' %}">
+  {% for course in courses %}
+  <div class="course-card" data-id="{{ course.id }}" data-href="{% url 'admin_panel:course_detail' course.id %}">
+    <div class="course-card__handle" data-drag-handle title="{% trans 'Перетащить' %}" aria-label="{% trans 'Перетащить' %}">⋮⋮</div>
+    <div class="course-card__icon">{{ course.icon|default:"📚" }}</div>
+    <div class="course-card__body">
+      <h3 class="course-card__title">{{ course.title }}</h3>
+      {% if course.description %}
+        <p class="course-card__desc">{{ course.description|truncatechars:90 }}</p>
+      {% endif %}
+      <div class="course-card__meta">
+        <span class="course-card__count">{{ course.topics.count }} {% trans "тем" %}</span>
+        <span class="course-card__roles">
+          {% for cr in course.course_roles.all %}
+            <span class="tag">{{ cr.role.title }}</span>
+          {% empty %}
+            <span class="text-dim">{% trans "Без ролей" %}</span>
+          {% endfor %}
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="placeholder">
+  <div class="placeholder__icon">📚</div>
+  <h2 class="placeholder__title">{% trans "Курсов пока нет" %}</h2>
+  <p class="placeholder__text">{% trans "Создайте первый курс — он сразу будет виден сотрудникам с подходящими ролями." %}</p>
+  <a class="btn btn--primary" style="margin-top:16px;" href="{% url 'admin_panel:course_create' %}">+ {% trans "Создать курс" %}</a>
+</div>
+{% endif %}
+
+{% endblock %}

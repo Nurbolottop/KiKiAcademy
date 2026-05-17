@@ -1,0 +1,189 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n lms_extras %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block heading %}{% trans "Редактирование урока" %}{% endblock %}
+
+{% block content %}
+
+<div class="breadcrumb">
+  <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
+  <span>›</span>
+  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course.title }}</a>
+  <span>›</span>
+  <a href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{{ topic.title }}</a>
+  <span>›</span>
+  <span>{{ lesson.title }}</span>
+</div>
+
+<form class="form" method="post">
+  {% csrf_token %}
+  <div class="form__grid">
+    <div class="form__field form__field--full">
+      <label>{% trans "Название" %}</label>
+      {{ form.title }}
+    </div>
+    <div class="form__field">
+      <label>{% trans "Тип урока" %}</label>
+      {{ form.kind }}
+      <div class="form__help">{% trans "Изменение типа очистит черновики содержимого" %}</div>
+    </div>
+    <div class="form__field">
+      <label>{% trans "Опубликован" %}</label>
+      <label class="switch">{{ form.is_published }} <span>{% trans "Виден сотрудникам" %}</span></label>
+    </div>
+    <div class="form__field form__field--full">
+      <label>{% trans "Описание / введение" %}</label>
+      {{ form.description }}
+    </div>
+  </div>
+
+  <div class="form__actions">
+    <button type="submit" class="btn btn--primary">{% trans "Сохранить" %}</button>
+    <a class="btn btn--ghost" href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{% trans "Назад к теме" %}</a>
+  </div>
+</form>
+
+{# ─── CONTENT BLOCKS ─── #}
+{% if lesson.kind == 'CONTENT' %}
+<section class="section">
+  <header class="section__head">
+    <h2 class="section__title">{% trans "Блоки контента" %}</h2>
+    <div class="block-add">
+      <a class="btn btn--small btn--secondary" href="{% url 'admin_panel:block_create' course.pk topic.pk lesson.pk 'TEXT' %}">+ {% trans "Текст" %}</a>
+      <a class="btn btn--small btn--secondary" href="{% url 'admin_panel:block_create' course.pk topic.pk lesson.pk 'IMAGE' %}">+ {% trans "Картинка" %}</a>
+      <a class="btn btn--small btn--secondary" href="{% url 'admin_panel:block_create' course.pk topic.pk lesson.pk 'VIDEO' %}">+ {% trans "Видео" %}</a>
+    </div>
+  </header>
+
+  {% if blocks %}
+  <div class="block-list" data-reorder-list
+       data-reorder-url="{% url 'admin_panel:blocks_reorder' course.pk topic.pk lesson.pk %}">
+    {% for b in blocks %}
+    <article class="block-card block-card--{{ b.kind|lower }}" data-id="{{ b.id }}">
+      <header class="block-card__head">
+        <span class="block-card__handle" data-drag-handle title="{% trans 'Перетащить' %}">⋮⋮</span>
+        <span class="block-card__type">
+          {% if b.kind == 'TEXT' %}📝 {% trans "Текст" %}
+          {% elif b.kind == 'IMAGE' %}🖼️ {% trans "Картинка" %}
+          {% elif b.kind == 'VIDEO' %}🎬 {% trans "Видео" %}
+          {% endif %}
+        </span>
+        <div class="block-card__actions">
+          <a class="btn btn--small btn--ghost" href="{% url 'admin_panel:block_edit' course.pk topic.pk lesson.pk b.id %}">{% trans "Редактировать" %}</a>
+          <form method="post" action="{% url 'admin_panel:block_delete' course.pk topic.pk lesson.pk b.id %}"
+                data-ajax data-confirm="{% trans 'Удалить блок?' %}" data-confirm-button="{% trans 'Удалить' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn--small btn--danger-outline">×</button>
+          </form>
+        </div>
+      </header>
+      <div class="block-card__body">
+        {% if b.kind == 'TEXT' %}
+          <div class="block-preview">{{ b.text|safe|truncatechars_html:300 }}</div>
+        {% elif b.kind == 'IMAGE' %}
+          {% if b.image %}
+            <img class="block-preview__image" src="{{ b.image.url }}" alt="{{ b.caption }}">
+          {% endif %}
+          {% if b.caption %}<div class="block-preview__caption">{{ b.caption }}</div>{% endif %}
+        {% elif b.kind == 'VIDEO' %}
+          {% video_iframe b.video_url %}
+          {% if b.caption %}<div class="block-preview__caption">{{ b.caption }}</div>{% endif %}
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="placeholder placeholder--compact">
+    <div class="placeholder__icon">📦</div>
+    <p class="placeholder__text">{% trans "Блоков ещё нет. Добавьте первый блок выше." %}</p>
+  </div>
+  {% endif %}
+</section>
+
+{# ─── QUIZ ─── #}
+{% else %}
+<section class="section">
+  <header class="section__head">
+    <h2 class="section__title">{% trans "Вопросы теста" %}</h2>
+    <button type="button" class="btn btn--small btn--primary" data-show-form="question-create">+ {% trans "Добавить вопрос" %}</button>
+  </header>
+
+  <form id="question-create" class="form" method="post"
+        action="{% url 'admin_panel:question_create' course.pk topic.pk lesson.pk %}"
+        data-ajax data-reload-on-success="true" hidden style="max-width:720px;">
+    {% csrf_token %}
+    <div class="form__field form__field--full">
+      <label>{% trans "Текст вопроса" %}</label>
+      <textarea name="text" rows="2" required placeholder="{% trans 'Например: Какое моющее средство применяют для…' %}"></textarea>
+    </div>
+    <div class="form__actions">
+      <button type="submit" class="btn btn--primary btn--small">{% trans "Создать" %}</button>
+      <button type="button" class="btn btn--ghost btn--small" data-hide-form="question-create">{% trans "Отмена" %}</button>
+    </div>
+  </form>
+
+  {% if questions %}
+  <div class="question-list" data-reorder-list
+       data-reorder-url="{% url 'admin_panel:questions_reorder' course.pk topic.pk lesson.pk %}">
+    {% for q in questions %}
+    <article class="question-card" data-id="{{ q.id }}">
+      <header class="question-card__head">
+        <span class="question-card__handle" data-drag-handle>⋮⋮</span>
+        <span class="question-card__num">{{ forloop.counter }}</span>
+        <span class="question-card__text">{{ q.text }}</span>
+        <div class="question-card__actions">
+          <form method="post" action="{% url 'admin_panel:question_delete' course.pk topic.pk lesson.pk q.id %}"
+                data-ajax data-confirm="{% trans 'Удалить вопрос со всеми ответами?' %}"
+                data-confirm-button="{% trans 'Удалить' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn--small btn--danger-outline">×</button>
+          </form>
+        </div>
+      </header>
+
+      <div class="question-card__body">
+        <ul class="answer-list">
+          {% for a in q.answers.all %}
+          <li class="answer-row {% if a.is_correct %}answer-row--correct{% endif %}" data-id="{{ a.id }}">
+            <button type="button" class="answer-row__check"
+                    data-answer-toggle="{% url 'admin_panel:answer_toggle' course.pk topic.pk lesson.pk q.id a.id %}"
+                    title="{% trans 'Правильный ответ' %}">
+              {% if a.is_correct %}✓{% else %}○{% endif %}
+            </button>
+            <span class="answer-row__text">{{ a.text }}</span>
+            <form method="post" action="{% url 'admin_panel:answer_delete' course.pk topic.pk lesson.pk q.id a.id %}"
+                  data-ajax data-reload-on-success="true">
+              {% csrf_token %}
+              <button type="submit" class="answer-row__delete" title="{% trans 'Удалить' %}">×</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <form class="answer-add" method="post"
+              action="{% url 'admin_panel:answer_create' course.pk topic.pk lesson.pk q.id %}"
+              data-ajax data-reload-on-success="true">
+          {% csrf_token %}
+          <input type="text" name="text" placeholder="{% trans 'Новый вариант ответа…' %}" required>
+          <label class="switch">
+            <input type="checkbox" name="is_correct">
+            <span>{% trans "Правильный" %}</span>
+          </label>
+          <button type="submit" class="btn btn--small btn--primary">{% trans "Добавить" %}</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="placeholder placeholder--compact">
+    <div class="placeholder__icon">❓</div>
+    <p class="placeholder__text">{% trans "Вопросов ещё нет. Добавьте первый вопрос выше." %}</p>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% endblock %}

@@ -1,6 +1,5 @@
 from django.db import models
 from django_resized.forms import ResizedImageField
-from ckeditor_uploader.fields import RichTextUploadingField
 
 # Create your models here.
 class Settings(models.Model):
@@ -11,6 +10,7 @@ class Settings(models.Model):
     locate = models.CharField(max_length=100, verbose_name='Адрес')
     email = models.EmailField(verbose_name='Email')
     phone = models.CharField(max_length=100, verbose_name='Телефон')
+    default_staff_password = models.CharField(max_length=128, verbose_name='Пароль по умолчанию для сотрудников', blank=True)
     work_schedule = models.CharField(max_length=100, verbose_name='Режим работы')
     whatsapp = models.URLField(verbose_name='Whatsapp')
     telegram = models.URLField(verbose_name='Telegram')
@@ -20,5 +20,24 @@ class Settings(models.Model):
     class Meta:
         verbose_name = '1) Настройки'
         verbose_name_plural = '1) Настройки'
+
     def __str__(self):
         return self.title
+
+    @classmethod
+    def get_singleton(cls) -> 'Settings':
+        obj = cls.objects.first()
+        if obj is not None:
+            return obj
+        return cls.objects.create(
+            title='KIKI Academy',
+            description='',
+            locate='',
+            email='info@example.com',
+            phone='',
+            work_schedule='',
+            whatsapp='https://wa.me/',
+            telegram='https://t.me/',
+            instagram='https://instagram.com/',
+            facebook='https://facebook.com/',
+        )

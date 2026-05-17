@@ -1,0 +1,138 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ profile.user }}{% endblock %}
+{% block heading %}{{ profile.user.first_name }} {{ profile.user.last_name|default:profile.user.phone }}{% endblock %}
+
+{% block header_actions %}
+  <a class="btn btn--secondary" href="{% url 'admin_panel:employee_edit' profile.pk %}">{% trans "Редактировать" %}</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="detail-grid">
+
+  <div class="card">
+    <h3 class="card__title">{% trans "Профиль" %}</h3>
+    <div class="info-rows">
+      <div class="info-row"><span>{% trans "Телефон" %}</span><b>{{ profile.user.phone }}</b></div>
+      <div class="info-row"><span>{% trans "Email" %}</span><b>{{ profile.user.email|default:'—' }}</b></div>
+      <div class="info-row"><span>{% trans "Статус" %}</span><span class="status status--{{ profile.status|lower }}">{{ profile.get_status_display }}</span></div>
+      <div class="info-row"><span>{% trans "Дата найма" %}</span><b>{{ profile.hired_at|date:"d.m.Y" }}</b></div>
+      {% if profile.fired_at %}
+        <div class="info-row"><span>{% trans "Дата увольнения" %}</span><b>{{ profile.fired_at|date:"d.m.Y H:i" }}</b></div>
+      {% endif %}
+      <div class="info-row"><span>{% trans "Может войти на сайт" %}</span><b>{{ profile.user.is_active|yesno:_("Да,Нет") }}</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="card__title">{% trans "Роли" %}</h3>
+    {% if is_founder %}
+      <p class="text-dim">{% trans "Администратор — роли обучения не назначаются." %}</p>
+      <div class="badge badge--info">{% trans "Администратор платформы" %}</div>
+    {% else %}
+      <div class="role-chips" data-role-chips data-toggle-url="{% url 'admin_panel:employee_roles_toggle' profile.pk %}">
+        {% for role in available_roles %}
+          <button type="button"
+                  class="chip {% if role.id in active_role_ids %}chip--active{% endif %}"
+                  data-role-id="{{ role.id }}"
+                  data-role-title="{{ role.title }}">
+            <span class="chip__check">✓</span>
+            <span class="chip__label">{{ role.title }}</span>
+          </button>
+        {% endfor %}
+      </div>
+      <p class="form__help">{% trans "Клик по роли — добавляет или убирает её. Курсы привязываются автоматически." %}</p>
+    {% endif %}
+  </div>
+
+</div>
+
+{% if not is_founder %}
+<section class="section">
+  <h2 class="section__title">{% trans "Действия" %}</h2>
+  <div class="actions-row">
+    {% if profile.status == 'ACTIVE' %}
+      <form method="post" action="{% url 'admin_panel:employee_block' profile.pk %}"
+            data-ajax data-confirm="{% trans 'Заблокировать сотрудника? Он не сможет войти на сайт.' %}"
+            data-confirm-title="{% trans 'Заблокировать' %}" data-confirm-button="{% trans 'Заблокировать' %}" data-confirm-type="warning">
+        {% csrf_token %}
+        <button class="btn btn--warning" type="submit">{% trans "Заблокировать" %}</button>
+      </form>
+      <form method="post" action="{% url 'admin_panel:employee_fire' profile.pk %}"
+            data-ajax data-confirm="{% trans 'Уволить сотрудника? Прогресс обучения сохранится.' %}"
+            data-confirm-title="{% trans 'Увольнение' %}" data-confirm-button="{% trans 'Уволить' %}" data-confirm-type="danger">
+        {% csrf_token %}
+        <button class="btn btn--danger" type="submit">{% trans "Уволить" %}</button>
+      </form>
+    {% elif profile.status == 'BLOCKED' %}
+      <form method="post" action="{% url 'admin_panel:employee_activate' profile.pk %}" data-ajax>
+        {% csrf_token %}
+        <button class="btn btn--success" type="submit">{% trans "Активировать" %}</button>
+      </form>
+      <form method="post" action="{% url 'admin_panel:employee_fire' profile.pk %}"
+            data-ajax data-confirm="{% trans 'Уволить сотрудника?' %}"
+            data-confirm-title="{% trans 'Увольнение' %}" data-confirm-button="{% trans 'Уволить' %}" data-confirm-type="danger">
+        {% csrf_token %}
+        <button class="btn btn--danger" type="submit">{% trans "Уволить" %}</button>
+      </form>
+    {% elif profile.status == 'FIRED' %}
+      <form method="post" action="{% url 'admin_panel:employee_activate' profile.pk %}"
+            data-ajax data-confirm="{% trans 'Восстановить уволенного сотрудника?' %}"
+            data-confirm-title="{% trans 'Восстановить' %}" data-confirm-button="{% trans 'Восстановить' %}" data-confirm-type="success">
+        {% csrf_token %}
+        <button class="btn btn--success" type="submit">{% trans "Восстановить" %}</button>
+      </form>
+    {% endif %}
+
+    <a class="btn btn--ghost" href="{% url 'admin_panel:employee_reset_password' profile.pk %}">{% trans "Сбросить пароль" %}</a>
+
+    <form method="post" action="{% url 'admin_panel:employee_delete' profile.pk %}"
+          data-ajax data-confirm="{% trans 'Удалить сотрудника навсегда? Это действие нельзя отменить.' %}"
+          data-confirm-title="{% trans 'Удалить навсегда' %}" data-confirm-button="{% trans 'Удалить' %}" data-confirm-type="danger"
+          style="margin-left:auto;">
+      {% csrf_token %}
+      <button class="btn btn--danger-outline" type="submit">{% trans "Удалить" %}</button>
+    </form>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <h2 class="section__title">{% blocktrans count counter=enrollments|length %}Назначенный курс ({{ counter }}){% plural %}Назначенные курсы ({{ counter }}){% endblocktrans %}</h2>
+  {% if enrollments %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{% trans "Курс" %}</th>
+          <th>{% trans "Назначен как" %}</th>
+          <th>{% trans "Начало" %}</th>
+          <th>{% trans "Завершён" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in enrollments %}
+        <tr>
+          <td>{{ e.course.title }}</td>
+          <td><span class="tag">{{ e.assigned_role.title }}</span></td>
+          <td>{{ e.started_at|date:"d.m.Y" }}</td>
+          <td>
+            {% if e.completed_at %}
+              <span class="status status--active">✓ {{ e.completed_at|date:"d.m.Y" }}</span>
+            {% else %}
+              <span class="text-dim">{% trans "в процессе" %}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-dim">{% trans "Курсы пока не назначены. Добавьте роль — курсы появятся автоматически." %}</p>
+  {% endif %}
+</section>
+
+{% endblock %}

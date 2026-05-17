@@ -1,0 +1,166 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Настройки сайта" %}{% endblock %}
+{% block heading %}{% trans "Настройки сайта" %}{% endblock %}
+
+{% block header_actions %}
+  <button type="submit" form="settings-form" class="btn btn--primary">{% trans "Сохранить" %}</button>
+{% endblock %}
+
+{% block content %}
+
+<form id="settings-form" class="settings-form" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="form__errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="settings-section">
+    <header class="settings-section__head">
+      <h2 class="settings-section__title">🎨 {% trans "Брендинг" %}</h2>
+      <p class="settings-section__desc">{% trans "Название, описание и визуальные элементы платформы" %}</p>
+    </header>
+
+    <div class="settings-section__body">
+      <div class="form__field">
+        <label>{% trans "Название сайта" %}</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="form__error">{{ form.title.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="form__field form__field--full">
+        <label>{% trans "Описание сайта" %}</label>
+        {{ form.description }}
+        {% if form.description.errors %}<div class="form__error">{{ form.description.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="upload-grid">
+
+        <div class="form__field">
+          <label>{% trans "Логотип" %}</label>
+          <div class="upload-zone {% if instance.logo %}upload-zone--has-file{% endif %}" data-upload-zone>
+            <div class="upload-zone__preview-wrap">
+              <img class="upload-zone__preview" src="{% if instance.logo %}{{ instance.logo.url }}{% endif %}" alt="">
+              <div class="upload-zone__placeholder">
+                <div class="upload-zone__icon">🖼️</div>
+                <div class="upload-zone__text">{% trans "Перетащите файл сюда" %}<br><small>{% trans "или нажмите для выбора" %}</small></div>
+              </div>
+            </div>
+            <input type="file" name="{{ form.logo.name }}" accept="image/*" data-upload-input hidden>
+            <button type="button" class="upload-zone__clear" data-upload-clear>×</button>
+          </div>
+          {% if form.logo.errors %}<div class="form__error">{{ form.logo.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label>{% trans "Иконка (favicon)" %}</label>
+          <div class="upload-zone {% if instance.icon %}upload-zone--has-file{% endif %}" data-upload-zone>
+            <div class="upload-zone__preview-wrap">
+              <img class="upload-zone__preview" src="{% if instance.icon %}{{ instance.icon.url }}{% endif %}" alt="">
+              <div class="upload-zone__placeholder">
+                <div class="upload-zone__icon">⭐</div>
+                <div class="upload-zone__text">{% trans "Перетащите файл сюда" %}<br><small>{% trans "или нажмите для выбора" %}</small></div>
+              </div>
+            </div>
+            <input type="file" name="{{ form.icon.name }}" accept="image/*" data-upload-input hidden>
+            <button type="button" class="upload-zone__clear" data-upload-clear>×</button>
+          </div>
+          {% if form.icon.errors %}<div class="form__error">{{ form.icon.errors|join:", " }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="settings-section">
+    <header class="settings-section__head">
+      <h2 class="settings-section__title">📞 {% trans "Контакты" %}</h2>
+      <p class="settings-section__desc">{% trans "Контактные данные компании и пароль по умолчанию для новых сотрудников" %}</p>
+    </header>
+
+    <div class="settings-section__body">
+      <div class="form__grid">
+
+        <div class="form__field">
+          <label>{% trans "Email" %}</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="form__error">{{ form.email.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label>{% trans "Телефон" %}</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div class="form__error">{{ form.phone.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label>{% trans "Адрес" %}</label>
+          {{ form.locate }}
+          {% if form.locate.errors %}<div class="form__error">{{ form.locate.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label>{% trans "Режим работы" %}</label>
+          {{ form.work_schedule }}
+          {% if form.work_schedule.errors %}<div class="form__error">{{ form.work_schedule.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field form__field--full">
+          <label>{% trans "Пароль по умолчанию для новых сотрудников" %}</label>
+          {{ form.default_staff_password }}
+          <div class="form__help">{% trans "Используется при создании нового сотрудника, если пароль не указан вручную" %}</div>
+          {% if form.default_staff_password.errors %}<div class="form__error">{{ form.default_staff_password.errors|join:", " }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="settings-section">
+    <header class="settings-section__head">
+      <h2 class="settings-section__title">🌐 {% trans "Социальные сети" %}</h2>
+      <p class="settings-section__desc">{% trans "Ссылки на профили компании в социальных сетях" %}</p>
+    </header>
+
+    <div class="settings-section__body">
+      <div class="form__grid">
+
+        <div class="form__field">
+          <label><span class="social-icon social-icon--wa">💬</span> WhatsApp</label>
+          {{ form.whatsapp }}
+          {% if form.whatsapp.errors %}<div class="form__error">{{ form.whatsapp.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label><span class="social-icon social-icon--tg">✈️</span> Telegram</label>
+          {{ form.telegram }}
+          {% if form.telegram.errors %}<div class="form__error">{{ form.telegram.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label><span class="social-icon social-icon--ig">📷</span> Instagram</label>
+          {{ form.instagram }}
+          {% if form.instagram.errors %}<div class="form__error">{{ form.instagram.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="form__field">
+          <label><span class="social-icon social-icon--fb">f</span> Facebook</label>
+          {{ form.facebook }}
+          {% if form.facebook.errors %}<div class="form__error">{{ form.facebook.errors|join:", " }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="settings-form__sticky">
+    <button type="submit" class="btn btn--primary">{% trans "Сохранить изменения" %}</button>
+  </div>
+
+</form>
+
+{{ form.media }}
+
+{% endblock %}

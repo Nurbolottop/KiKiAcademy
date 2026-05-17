@@ -1,0 +1,86 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ topic.title }}{% endblock %}
+{% block heading %}{{ topic.title }}{% endblock %}
+
+{% block content %}
+
+<div class="breadcrumb">
+  <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
+  <span>›</span>
+  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course.title }}</a>
+  <span>›</span>
+  <span>{{ topic.title }}</span>
+</div>
+
+<section class="section">
+  <header class="section__head">
+    <h2 class="section__title">{% trans "Уроки темы" %}</h2>
+    <button type="button" class="btn btn--primary btn--small" data-show-form="lesson-create">+ {% trans "Добавить урок" %}</button>
+  </header>
+
+  <form id="lesson-create" class="form" method="post"
+        action="{% url 'admin_panel:lesson_create' course.pk topic.pk %}"
+        data-ajax data-reload-on-success="true" hidden style="max-width:720px;">
+    {% csrf_token %}
+    <div class="form__grid">
+      <div class="form__field form__field--full">
+        <label>{% trans "Название урока" %}</label>
+        {{ lesson_form.title }}
+      </div>
+      <div class="form__field">
+        <label>{% trans "Тип" %}</label>
+        {{ lesson_form.kind }}
+      </div>
+      <div class="form__field">
+        <label>{% trans "Опубликован" %}</label>
+        <label class="switch">
+          {{ lesson_form.is_published }}
+          <span>{% trans "Виден сотрудникам" %}</span>
+        </label>
+      </div>
+      <div class="form__field form__field--full">
+        <label>{% trans "Описание (необязательно)" %}</label>
+        {{ lesson_form.description }}
+      </div>
+    </div>
+    <div class="form__actions">
+      <button type="submit" class="btn btn--primary btn--small">{% trans "Создать урок" %}</button>
+      <button type="button" class="btn btn--ghost btn--small" data-hide-form="lesson-create">{% trans "Отмена" %}</button>
+    </div>
+  </form>
+
+  {% if topic.lessons.all %}
+  <div class="lesson-list" data-reorder-list data-reorder-url="{% url 'admin_panel:lessons_reorder' course.pk topic.pk %}">
+    {% for lesson in topic.lessons.all %}
+    <div class="lesson-row" data-id="{{ lesson.id }}"
+         data-href="{% url 'admin_panel:lesson_edit' course.pk topic.pk lesson.id %}">
+      <div class="lesson-row__handle" data-drag-handle>⋮⋮</div>
+      <div class="lesson-row__icon">{% if lesson.kind == 'QUIZ' %}❓{% else %}📄{% endif %}</div>
+      <div class="lesson-row__body">
+        <div class="lesson-row__title">{{ lesson.title }}</div>
+        <div class="lesson-row__meta">
+          <span class="tag">{{ lesson.get_kind_display }}</span>
+          {% if not lesson.is_published %}
+            <span class="tag tag--warning">{% trans "черновик" %}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="lesson-row__actions" data-no-link>
+        <a class="btn btn--small btn--ghost" href="{% url 'admin_panel:lesson_edit' course.pk topic.pk lesson.id %}">{% trans "Редактировать" %}</a>
+        <form method="post" action="{% url 'admin_panel:lesson_delete' course.pk topic.pk lesson.id %}"
+              data-ajax data-confirm="{% trans 'Удалить урок?' %}" data-confirm-button="{% trans 'Удалить' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--small btn--danger-outline">×</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-dim">{% trans "В теме пока нет уроков." %}</p>
+  {% endif %}
+</section>
+
+{% endblock %}

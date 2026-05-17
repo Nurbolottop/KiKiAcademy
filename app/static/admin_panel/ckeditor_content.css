@@ -1,0 +1,51 @@
+/* Стили внутри iframe CKEditor — авто свет/темн по системе */
+body {
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 14px;
+  margin: 0;
+  background: #ffffff;
+  color: #1a1d2b;
+}
+a { color: #6366f1; text-decoration: underline; }
+a:hover { color: #4f52e3; }
+p { margin: 0 0 12px; }
+h1, h2, h3, h4, h5, h6 { margin: 16px 0 8px; font-weight: 700; }
+h1 { font-size: 24px; }
+h2 { font-size: 20px; }
+h3 { font-size: 17px; }
+blockquote {
+  border-left: 3px solid #6366f1;
+  padding: 4px 12px;
+  margin: 12px 0;
+  color: #6b7280;
+  background: rgba(99,102,241,0.06);
+  border-radius: 0 6px 6px 0;
+}
+hr { border: none; border-top: 1px solid #e2e6ee; margin: 16px 0; }
+ul, ol { padding-left: 24px; margin: 8px 0 12px; }
+li { margin: 4px 0; }
+code {
+  background: #f0f2f7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #a78bfa;
+}
+pre { background: #f0f2f7; padding: 12px; border-radius: 8px; overflow-x: auto; }
+img { max-width: 100%; height: auto; border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #e2e6ee; padding: 6px 10px; }
+th { background: #f0f2f7; }
+::selection { background: rgba(99,102,241,0.25); }
+
+@media (prefers-color-scheme: dark) {
+  body { background: #0f1115; color: #e6e9f2; }
+  blockquote { color: #8a92a8; }
+  hr { border-top-color: #262b3a; }
+  code { background: #161922; }
+  pre { background: #161922; }
+  th, td { border-color: #262b3a; }
+  th { background: #161922; }
+}

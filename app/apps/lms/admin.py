@@ -1,52 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from django.contrib.auth.models import User
 
 from apps.lms import models
-
-
-def _is_founder(user) -> bool:
-    if not user or not user.is_authenticated:
-        return False
-    if user.is_superuser:
-        return True
-    profile = getattr(user, 'profile', None)
-    if not profile or not profile.role:
-        return False
-    return profile.role.code == models.Role.Code.FOUNDER
-
-
-class UserProfileInline(admin.StackedInline):
-    model = models.UserProfile
-    can_delete = False
-    extra = 1
-    min_num = 1
-    max_num = 1
-    validate_min = True
-    autocomplete_fields = ('role',)
-
-
-class UserAdmin(DjangoUserAdmin):
-    inlines = (UserProfileInline,)
-
-    def has_view_permission(self, request, obj=None):
-        return _is_founder(request.user)
-
-    def has_add_permission(self, request):
-        return _is_founder(request.user)
-
-    def has_change_permission(self, request, obj=None):
-        return _is_founder(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        return _is_founder(request.user)
-
-
-try:
-    admin.site.unregister(User)
-except admin.sites.NotRegistered:
-    pass
-admin.site.register(User, UserAdmin)
 
 
 @admin.register(models.Role)
@@ -58,10 +12,15 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role')
-    list_filter = ('role',)
-    search_fields = ('user__username', 'user__email')
+    list_display = ('user', 'roles_display', 'status', 'hired_at', 'fired_at')
+    list_filter = ('status', 'roles')
+    search_fields = ('user__phone', 'user__email', 'user__first_name', 'user__last_name')
     autocomplete_fields = ('user',)
+    filter_horizontal = ('roles',)
+
+    @admin.display(description='Роли')
+    def roles_display(self, obj):
+        return ', '.join(obj.roles.values_list('title', flat=True))
 
 
 class TopicInline(admin.TabularInline):
@@ -71,8 +30,7 @@ class TopicInline(admin.TabularInline):
 
 @admin.register(models.Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_published', 'created_at')
-    list_filter = ('is_published',)
+    list_display = ('title', 'order', 'created_at')
     search_fields = ('title',)
     inlines = (TopicInline,)
 
@@ -110,7 +68,7 @@ class RoleCourseAdmin(admin.ModelAdmin):
 class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ('user', 'course', 'assigned_role', 'started_at', 'completed_at')
     list_filter = ('assigned_role', 'course', 'completed_at')
-    search_fields = ('user__username', 'user__email', 'course__title')
+    search_fields = ('user__phone', 'user__email', 'user__first_name', 'user__last_name', 'course__title')
     autocomplete_fields = ('user', 'course', 'assigned_role')
 
 

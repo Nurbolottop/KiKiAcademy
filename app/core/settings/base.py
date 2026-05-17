@@ -16,6 +16,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     raise Exception("SECRET_KEY не задан в переменных окружения")
 
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
+
 _allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '').strip()
 ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_env.split(',') if host.strip()]
 
@@ -24,8 +26,11 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in _csrf_trusted_origins_env.split(',') if origin.strip()
 ]
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Secure cookies — включать только когда сайт реально на HTTPS
+SESSION_COOKIE_SECURE = os.getenv('SECURE_COOKIES', 'False').lower() in ('1', 'true', 'yes')
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+# Корректное распознавание HTTPS из-за reverse-proxy (Nginx)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # =============================================================================
 # APPLICATIONS (ПРИЛОЖЕНИЯ)
@@ -45,11 +50,22 @@ INSTALLED_APPS = [
     'django_resized',
 
     # Local apps
+    'apps.accounts',
+    'apps.admin_panel',
     'apps.base',
-    'apps.cms',
-    'apps.contacts',
     'apps.lms',
 ]
+
+AUTH_USER_MODEL = 'accounts.User'
+
+AUTHENTICATION_BACKENDS = [
+    'apps.accounts.backends.PhoneBackend',
+]
+
+DEFAULT_STAFF_PASSWORD = os.getenv('DEFAULT_STAFF_PASSWORD', '12345678')
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 
 # =============================================================================
 # MIDDLEWARE (ПРОМЕЖУТОЧНЫЕ ОБРАБОТЧИКИ)
@@ -58,6 +74,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -85,6 +102,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -136,6 +154,12 @@ TIME_ZONE = os.getenv('TIME_ZONE', 'Asia/Bishkek')
 USE_I18N = True
 USE_TZ = True
 
+LANGUAGES = [
+    ('ru', 'Русский'),
+    ('ky', 'Кыргызча'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
 # =============================================================================
 # STATIC & MEDIA FILES (СТАТИЧЕСКИЕ И МЕДИА ФАЙЛЫ)
 # =============================================================================
@@ -169,5 +193,21 @@ CKEDITOR_CONFIGS = {
         'toolbar': 'full',
         'height': 300,
         'width': '100%',
+    },
+    'admin_panel': {
+        'toolbar': [
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList', 'Blockquote'],
+            ['Link', 'Unlink', 'Image', 'HorizontalRule'],
+            ['Format'],
+            ['Undo', 'Redo', '-', 'Source'],
+        ],
+        'toolbarCanCollapse': False,
+        'height': 240,
+        'width': '100%',
+        'resize_enabled': False,
+        'contentsCss': [STATIC_URL + 'admin_panel/ckeditor_content.css'],
+        'removePlugins': 'elementspath',
+        'language': 'ru',
     },
 }

@@ -1,0 +1,74 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% if mode == 'create' %}{% trans "Новый сотрудник" %}{% else %}{% trans "Редактирование" %}{% endif %}{% endblock %}
+{% block heading %}{% if mode == 'create' %}{% trans "Новый сотрудник" %}{% else %}{% trans "Редактирование сотрудника" %}{% endif %}{% endblock %}
+
+{% block content %}
+<form class="form" method="post">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="form__errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form__grid">
+
+    <div class="form__field">
+      <label>{{ form.phone.label }}</label>
+      {{ form.phone }}
+      {% if form.phone.errors %}<div class="form__error">{{ form.phone.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form__field">
+      <label>{{ form.first_name.label }}</label>
+      {{ form.first_name }}
+      {% if form.first_name.errors %}<div class="form__error">{{ form.first_name.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form__field">
+      <label>{{ form.last_name.label }}</label>
+      {{ form.last_name }}
+      {% if form.last_name.errors %}<div class="form__error">{{ form.last_name.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form__field">
+      <label>{{ form.email.label }}</label>
+      {{ form.email }}
+      {% if form.email.errors %}<div class="form__error">{{ form.email.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form__field">
+      <label>{{ form.status.label }}</label>
+      {{ form.status }}
+      {% if form.status.errors %}<div class="form__error">{{ form.status.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    {% if form.password %}
+    <div class="form__field">
+      <label>{{ form.password.label }}</label>
+      {{ form.password }}
+      {% if form.password.help_text %}<div class="form__help">{{ form.password.help_text }}</div>{% endif %}
+      {% if form.password.errors %}<div class="form__error">{{ form.password.errors|join:", " }}</div>{% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="form__field form__field--full">
+    <label>{{ form.roles.label }}</label>
+    <div class="checkbox-group">
+      {{ form.roles }}
+    </div>
+    <div class="form__help">{% trans "При выборе роли сотруднику автоматически назначаются её курсы" %}</div>
+    {% if form.roles.errors %}<div class="form__error">{{ form.roles.errors|join:", " }}</div>{% endif %}
+  </div>
+
+  <div class="form__actions">
+    <button type="submit" class="btn btn--primary">
+      {% if mode == 'create' %}{% trans "Создать сотрудника" %}{% else %}{% trans "Сохранить" %}{% endif %}
+    </button>
+    <a class="btn btn--ghost" href="{% if mode == 'edit' %}{% url 'admin_panel:employee_detail' profile.pk %}{% else %}{% url 'admin_panel:employees' %}{% endif %}">{% trans "Отмена" %}</a>
+  </div>
+</form>
+{% endblock %}

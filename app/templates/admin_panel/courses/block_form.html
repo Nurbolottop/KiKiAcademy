@@ -1,0 +1,80 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% if mode == 'create' %}{% trans "Новый блок" %}{% else %}{% trans "Редактирование блока" %}{% endif %}
+{% endblock %}
+{% block heading %}
+  {% if kind == 'TEXT' %}📝 {% trans "Текстовый блок" %}
+  {% elif kind == 'IMAGE' %}🖼️ {% trans "Блок-изображение" %}
+  {% elif kind == 'VIDEO' %}🎬 {% trans "Видео-блок" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="breadcrumb">
+  <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
+  <span>›</span>
+  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course.title }}</a>
+  <span>›</span>
+  <a href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{{ topic.title }}</a>
+  <span>›</span>
+  <a href="{% url 'admin_panel:lesson_edit' course.pk topic.pk lesson.pk %}">{{ lesson.title }}</a>
+</div>
+
+<form class="form" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  {% if kind == 'TEXT' %}
+    <div class="form__field form__field--full">
+      <label>{% trans "Содержимое (форматированный текст)" %}</label>
+      {{ form.text }}
+      {% if form.text.errors %}<div class="form__error">{{ form.text.errors|join:", " }}</div>{% endif %}
+    </div>
+
+  {% elif kind == 'IMAGE' %}
+    <div class="form__field form__field--full">
+      <label>{% trans "Изображение" %}</label>
+      <div class="upload-zone {% if block.image %}upload-zone--has-file{% endif %}" data-upload-zone>
+        <div class="upload-zone__preview-wrap">
+          <img class="upload-zone__preview" src="{% if block.image %}{{ block.image.url }}{% endif %}" alt="">
+          <div class="upload-zone__placeholder">
+            <div class="upload-zone__icon">🖼️</div>
+            <div class="upload-zone__text">{% trans "Перетащите файл сюда" %}<br><small>{% trans "или нажмите для выбора" %}</small></div>
+          </div>
+        </div>
+        <input type="file" name="image" accept="image/*" data-upload-input hidden>
+        <button type="button" class="upload-zone__clear" data-upload-clear>×</button>
+      </div>
+      {% if form.image.errors %}<div class="form__error">{{ form.image.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="form__field form__field--full">
+      <label>{% trans "Подпись (необязательно)" %}</label>
+      {{ form.caption }}
+    </div>
+
+  {% elif kind == 'VIDEO' %}
+    <div class="form__field form__field--full">
+      <label>{% trans "Ссылка на видео (YouTube или Vimeo)" %}</label>
+      {{ form.video_url }}
+      <div class="form__help">{% trans "Например: https://youtube.com/watch?v=… или https://vimeo.com/…" %}</div>
+      {% if form.video_url.errors %}<div class="form__error">{{ form.video_url.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="form__field form__field--full">
+      <label>{% trans "Подпись (необязательно)" %}</label>
+      {{ form.caption }}
+    </div>
+  {% endif %}
+
+  <div class="form__actions">
+    <button type="submit" class="btn btn--primary">
+      {% if mode == 'create' %}{% trans "Создать" %}{% else %}{% trans "Сохранить" %}{% endif %}
+    </button>
+    <a class="btn btn--ghost" href="{% url 'admin_panel:lesson_edit' course.pk topic.pk lesson.pk %}">{% trans "Отмена" %}</a>
+  </div>
+</form>
+
+{{ form.media }}
+
+{% endblock %}

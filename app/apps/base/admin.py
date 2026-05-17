@@ -13,7 +13,7 @@ class SettingsAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'logo','icon')
         }),
         ('Контактная информация', {
-            'fields': ('email', 'phone', 'work_schedule','locate')
+            'fields': ('email', 'phone', 'work_schedule','locate', 'default_staff_password')
         }),
         ('Социальные сети', {
             'fields': ('whatsapp', 'telegram', 'instagram', 'facebook'),

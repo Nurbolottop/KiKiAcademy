@@ -1,0 +1,157 @@
+{% load i18n static lms_extras %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ lesson.title }} — KIKI Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'dashboard.css' %}" />
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a class="header__brand" href="{% url 'dashboard' %}">
+      <div class="header__logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      </div>
+      <span class="header__name">KIKI Academy</span>
+    </a>
+
+    <div class="header__right">
+      {% get_current_language as CUR_LANG %}
+      {% get_available_languages as ALL_LANGS %}
+      <select class="header__lang" data-lang-switch aria-label="{% trans 'Язык' %}">
+        {% for code, name in ALL_LANGS %}
+          <option value="{{ code }}" {% if code == CUR_LANG %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+
+      <button id="theme-toggle" class="theme-btn" data-theme-toggle aria-label="{% trans 'Переключить тему' %}">
+        <svg class="i-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="i-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+<div class="container lesson-page">
+
+  <div class="lesson-breadcrumb">
+    <a href="{% url 'dashboard' %}">{% trans "Курсы" %}</a>
+    <span>›</span>
+    <span>{{ course.title }}</span>
+    <span>›</span>
+    <span>{{ topic.title }}</span>
+  </div>
+
+  <h1 class="lesson-title">{{ lesson.title }}</h1>
+  {% if lesson.description %}
+    <p class="lesson-intro">{{ lesson.description|linebreaksbr }}</p>
+  {% endif %}
+
+  {% if is_completed %}
+    <div class="lesson-status lesson-status--done">✓ {% trans "Урок пройден" %}</div>
+  {% endif %}
+
+  {# ─── CONTENT ─── #}
+  {% if lesson.kind == 'CONTENT' %}
+    <article class="lesson-content">
+      {% for b in blocks %}
+        {% if b.kind == 'TEXT' %}
+          <div class="lesson-block lesson-block--text">{{ b.text|safe }}</div>
+        {% elif b.kind == 'IMAGE' and b.image %}
+          <figure class="lesson-block lesson-block--image">
+            <img src="{{ b.image.url }}" alt="{{ b.caption }}">
+            {% if b.caption %}<figcaption>{{ b.caption }}</figcaption>{% endif %}
+          </figure>
+        {% elif b.kind == 'VIDEO' and b.video_url %}
+          <div class="lesson-block lesson-block--video">
+            {% video_iframe b.video_url %}
+            {% if b.caption %}<div class="lesson-caption">{{ b.caption }}</div>{% endif %}
+          </div>
+        {% endif %}
+      {% empty %}
+        <p class="text-dim">{% trans "В уроке пока нет контента." %}</p>
+      {% endfor %}
+    </article>
+
+    {% if blocks and not is_completed %}
+    <form class="lesson-actions" action="{% url 'lesson_complete' lesson.pk %}" method="post"
+          data-lesson-complete>
+      {% csrf_token %}
+      <button type="submit" class="btn-login" style="width:auto;padding:14px 32px;">
+        {% trans "Отметить пройденным" %} ✓
+      </button>
+    </form>
+    {% endif %}
+
+  {# ─── QUIZ ─── #}
+  {% else %}
+    <form id="quiz-form" class="quiz" method="post" action="{% url 'lesson_quiz_submit' lesson.pk %}">
+      {% csrf_token %}
+      {% for q in questions %}
+        <div class="quiz-question" data-question-id="{{ q.id }}">
+          <div class="quiz-question__num">{{ forloop.counter }}</div>
+          <div class="quiz-question__text">{{ q.text }}</div>
+          <ul class="quiz-answers">
+            {% for a in q.answers.all %}
+            <li class="quiz-answer">
+              <label>
+                <input type="checkbox" name="q_{{ q.id }}" value="{{ a.id }}">
+                <span>{{ a.text }}</span>
+              </label>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% empty %}
+        <p class="text-dim">{% trans "В тесте пока нет вопросов." %}</p>
+      {% endfor %}
+
+      {% if questions %}
+      <div class="quiz-actions">
+        <button type="submit" class="btn-login" style="width:auto;padding:14px 32px;">
+          {% trans "Проверить" %}
+        </button>
+      </div>
+      {% endif %}
+    </form>
+    <div id="quiz-result" hidden></div>
+  {% endif %}
+
+  <nav class="lesson-nav">
+    {% if prev_lesson %}
+      <a class="btn-login btn-login--ghost" href="{% url 'lesson_view' prev_lesson.pk %}">← {% trans "Предыдущий" %}</a>
+    {% else %}<span></span>{% endif %}
+    {% if next_lesson %}
+      <a class="btn-login btn-login--ghost" href="{% url 'lesson_view' next_lesson.pk %}">{% trans "Следующий" %} →</a>
+    {% else %}
+      <a class="btn-login btn-login--ghost" href="{% url 'dashboard' %}">{% trans "К курсам" %}</a>
+    {% endif %}
+  </nav>
+
+</div>
+</main>
+
+<script src="{% static 'dashboard.js' %}"></script>
+<script src="{% static 'lesson.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% trans "Админ-панель" %}{% endblock %} — KIKI Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'admin_panel/admin_panel.css' %}">
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">K</div>
+      <span class="sidebar__name">KIKI Admin</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      {% url 'admin_panel:dashboard' as u_dashboard %}
+      {% url 'admin_panel:employees' as u_employees %}
+      {% url 'admin_panel:courses' as u_courses %}
+      {% url 'admin_panel:programs' as u_programs %}
+      {% url 'admin_panel:settings' as u_settings %}
+
+      <a class="sidebar__link {% if request.path == u_dashboard %}is-active{% endif %}" href="{{ u_dashboard }}">
+        <span class="sidebar__icon">📊</span>
+        <span>{% trans "Дашборд" %}</span>
+      </a>
+      <a class="sidebar__link {% if u_employees in request.path %}is-active{% endif %}" href="{{ u_employees }}">
+        <span class="sidebar__icon">👥</span>
+        <span>{% trans "Сотрудники" %}</span>
+      </a>
+      <a class="sidebar__link {% if u_courses in request.path %}is-active{% endif %}" href="{{ u_courses }}">
+        <span class="sidebar__icon">📚</span>
+        <span>{% trans "Курсы" %}</span>
+      </a>
+      <a class="sidebar__link {% if u_programs in request.path %}is-active{% endif %}" href="{{ u_programs }}">
+        <span class="sidebar__icon">🎯</span>
+        <span>{% trans "Программы обучения" %}</span>
+      </a>
+      <a class="sidebar__link {% if u_settings in request.path %}is-active{% endif %}" href="{{ u_settings }}">
+        <span class="sidebar__icon">⚙️</span>
+        <span>{% trans "Настройки сайта" %}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__prefs">
+        <button type="button" class="prefs-btn" data-theme-toggle aria-label="{% trans 'Переключить тему' %}">
+          <span class="prefs-btn__icon prefs-btn__icon--dark">🌙</span>
+          <span class="prefs-btn__icon prefs-btn__icon--light">☀️</span>
+          <span class="prefs-btn__label">{% trans "Тема" %}</span>
+        </button>
+
+        <div class="prefs-lang">
+          {% get_current_language as CURRENT_LANGUAGE %}
+          {% get_available_languages as LANGUAGES %}
+          <select data-lang-switch class="prefs-lang__select" aria-label="{% trans 'Язык' %}">
+            {% for code, name in LANGUAGES %}
+              <option value="{{ code }}" {% if code == CURRENT_LANGUAGE %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar__user">
+        <div class="sidebar__avatar">{{ request.user.first_name|first|default:request.user.phone|first }}</div>
+        <div class="sidebar__user-info">
+          <span class="sidebar__user-name">{{ request.user.first_name|default:request.user.phone }}</span>
+          <span class="sidebar__user-role">{% trans "Администратор" %}</span>
+        </div>
+      </div>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="sidebar__logout">{% trans "Выйти" %}</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="content__header">
+      <h1 class="content__title">{% block heading %}{% endblock %}</h1>
+      {% block header_actions %}{% endblock %}
+    </header>
+
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <div class="message message--{{ message.tags|default:'info' }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="content__body">
+      {% block content %}{% endblock %}
+    </div>
+
+  </main>
+
+</div>
+
+<script src="{% static 'admin_panel/admin_panel.js' %}"></script>
+</body>
+</html>

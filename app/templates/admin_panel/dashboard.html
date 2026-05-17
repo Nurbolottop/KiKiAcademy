@@ -1,0 +1,58 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Дашборд" %}{% endblock %}
+{% block heading %}{% trans "Дашборд" %}{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+
+  <div class="stat-card">
+    <div class="stat-card__label">{% trans "Активных сотрудников" %}</div>
+    <div class="stat-card__value">{{ employees_count }}</div>
+    <div class="stat-card__meta">
+      {% trans "Заблокировано" %}: {{ employees_blocked }} · {% trans "Уволено" %}: {{ employees_fired }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card__label">{% trans "Курсов" %}</div>
+    <div class="stat-card__value">{{ courses_total }}</div>
+    <div class="stat-card__meta">{% trans "Тем" %}: {{ topics_total }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card__label">{% trans "Активные назначения" %}</div>
+    <div class="stat-card__value">{{ enrollments_active }}</div>
+    <div class="stat-card__meta">{% trans "Завершено" %}: {{ enrollments_completed }}</div>
+  </div>
+
+</div>
+
+<section class="section">
+  <h2 class="section__title">{% trans "Быстрые действия" %}</h2>
+  <div class="quick-actions">
+    <a class="action-card" href="{% url 'admin_panel:employees' %}">
+      <span class="action-card__icon">👥</span>
+      <span class="action-card__title">{% trans "Сотрудники" %}</span>
+      <span class="action-card__desc">{% trans "Добавить, заблокировать, уволить" %}</span>
+    </a>
+    <a class="action-card" href="{% url 'admin_panel:courses' %}">
+      <span class="action-card__icon">📚</span>
+      <span class="action-card__title">{% trans "Курсы" %}</span>
+      <span class="action-card__desc">{% trans "Создать курс, темы, уроки" %}</span>
+    </a>
+    <a class="action-card" href="{% url 'admin_panel:programs' %}">
+      <span class="action-card__icon">🎯</span>
+      <span class="action-card__title">{% trans "Программы" %}</span>
+      <span class="action-card__desc">{% trans "Назначить курсы ролям" %}</span>
+    </a>
+    <a class="action-card" href="{% url 'admin_panel:settings' %}">
+      <span class="action-card__icon">⚙️</span>
+      <span class="action-card__title">{% trans "Настройки" %}</span>
+      <span class="action-card__desc">{% trans "Логотип, контакты, соцсети" %}</span>
+    </a>
+  </div>
+</section>
+
+{% endblock %}

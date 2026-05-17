@@ -1,0 +1,64 @@
+{% load i18n %}
+{% if page.object_list %}
+<div class="table-wrap">
+  <table class="table table--clickable">
+    <thead>
+      <tr>
+        <th class="col-check"><input type="checkbox" data-check-all aria-label="{% trans 'Выбрать все' %}"></th>
+        <th>{% trans "Сотрудник" %}</th>
+        <th>{% trans "Телефон" %}</th>
+        <th>{% trans "Роли" %}</th>
+        <th>{% trans "Статус" %}</th>
+        <th>{% trans "Дата найма" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for profile in page.object_list %}
+      <tr data-href="{% url 'admin_panel:employee_detail' profile.pk %}">
+        <td class="col-check" data-no-link><input type="checkbox" data-bulk-check value="{{ profile.pk }}" aria-label="{% trans 'Выбрать' %}"></td>
+        <td>
+          <div class="cell-user">
+            <div class="cell-user__avatar">{{ profile.user.first_name|first|default:profile.user.phone|first }}</div>
+            <div>
+              <div class="cell-user__name">{{ profile.user.first_name }} {{ profile.user.last_name }}</div>
+              <div class="cell-user__sub">{{ profile.user.email|default:'—' }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ profile.user.phone }}</td>
+        <td>
+          {% for role in profile.roles.all %}
+            <span class="tag">{{ role.title }}</span>
+          {% empty %}
+            <span class="text-dim">—</span>
+          {% endfor %}
+        </td>
+        <td>
+          <span class="status status--{{ profile.status|lower }}">{{ profile.get_status_display }}</span>
+        </td>
+        <td>{{ profile.hired_at|date:"d.m.Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page.has_other_pages %}
+<nav class="pagination">
+  {% if page.has_previous %}
+    <a class="pagination__link" href="?page={{ page.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if role_id %}&role={{ role_id }}{% endif %}">← {% trans "Назад" %}</a>
+  {% endif %}
+  <span class="pagination__info">{% blocktrans with current=page.number total=page.paginator.num_pages %}Стр. {{ current }} из {{ total }}{% endblocktrans %}</span>
+  {% if page.has_next %}
+    <a class="pagination__link" href="?page={{ page.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if role_id %}&role={{ role_id }}{% endif %}">{% trans "Вперёд" %} →</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<div class="placeholder">
+  <div class="placeholder__icon">👤</div>
+  <h2 class="placeholder__title">{% trans "Сотрудников не найдено" %}</h2>
+  <p class="placeholder__text">{% trans "Попробуйте изменить фильтры или добавьте нового сотрудника." %}</p>
+</div>
+{% endif %}

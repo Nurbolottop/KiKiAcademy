@@ -1,21 +1,21 @@
-<!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="KIKI Academy — Главная" />
-  <title>KIKI Academy — Главная</title>
+  <meta name="description" content="KIKI Academy" />
+  <title>KIKI Academy — {% trans "Главная" %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="{% static 'dashboard.css' %}" />
 </head>
 <body>
 
-<!-- ═══ HEADER ═══════════════════════════════════════════════ -->
+<!-- ═══ HEADER ═══ -->
 <header class="header">
   <div class="header__inner">
-    <a class="header__brand" href="#">
+    <a class="header__brand" href="{% url 'dashboard' %}">
       <div class="header__logo">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -25,15 +25,27 @@
       </div>
       <span class="header__name">KIKI Academy</span>
     </a>
+
     <div class="header__right">
+      {% get_current_language as CUR_LANG %}
+      {% get_available_languages as ALL_LANGS %}
+      <select class="header__lang" data-lang-switch aria-label="{% trans 'Язык' %}">
+        {% for code, name in ALL_LANGS %}
+          <option value="{{ code }}" {% if code == CUR_LANG %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+
       <div class="header__user">
-        <div class="header__avatar">АН</div>
+        <div class="header__avatar">{{ request.user.first_name|first|default:request.user.phone|first }}</div>
         <div class="header__user-info">
-          <span class="header__user-name">Нурсултан А.</span>
-          <span class="header__user-role">Клинер</span>
+          <span class="header__user-name">{{ request.user.first_name }} {{ request.user.last_name|first }}{% if request.user.last_name %}.{% endif %}</span>
+          <span class="header__user-role">
+            {% for r in roles %}{{ r.title }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+          </span>
         </div>
       </div>
-      <button id="theme-toggle" class="theme-btn" aria-label="Переключить тему">
+
+      <button id="theme-toggle" class="theme-btn" data-theme-toggle aria-label="{% trans 'Переключить тему' %}">
         <svg class="i-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
@@ -49,118 +61,128 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
       </button>
+
+      <form method="post" action="{% url 'logout' %}" class="header__logout-form">
+        {% csrf_token %}
+        <button type="submit" class="header__logout" title="{% trans 'Выйти' %}">{% trans "Выйти" %}</button>
+      </form>
     </div>
   </div>
 </header>
 
-<!-- ═══ MAIN ════════════════════════════════════════════════ -->
+<!-- ═══ MAIN ═══ -->
 <main class="main">
 <div class="container">
 
-  <!-- ── Приветствие ─────────────────────────────── -->
+  <!-- ── Приветствие ── -->
   <div class="greeting">
-    <h1 class="greeting__title">Добро пожаловать, Нурсултан! 👋</h1>
-    <p class="greeting__sub">Продолжайте обучение — вы на верном пути</p>
+    <h1 class="greeting__title">{% blocktrans with name=request.user.first_name|default:request.user.phone %}Добро пожаловать, {{ name }}! 👋{% endblocktrans %}</h1>
+    <p class="greeting__sub">
+      {% if overall_percent == 100 %}
+        {% trans "Все курсы пройдены — отличная работа!" %}
+      {% elif overall_percent == 0 %}
+        {% trans "Начните своё обучение — нажмите на тему ниже" %}
+      {% else %}
+        {% trans "Продолжайте обучение — вы на верном пути" %}
+      {% endif %}
+    </p>
   </div>
 
-  <!-- ── Карточка сотрудника + Прогресс ──────────── -->
+  <!-- ── Карточка + Прогресс ── -->
   <div class="top-grid">
 
-    <!-- Карточка сотрудника -->
     <div class="emp-card card">
       <div class="emp-card__header">
-        <div class="emp-card__avatar">АН</div>
+        <div class="emp-card__avatar">{{ request.user.first_name|first|default:request.user.phone|first }}</div>
         <div>
-          <div class="emp-card__name">Айбек уулу Нурсултан</div>
-          <div class="emp-card__role-badge">Клинер</div>
+          <div class="emp-card__name">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+          <div class="emp-card__roles">
+            {% for r in roles %}
+              <span class="emp-card__role-badge">{{ r.title }}</span>
+            {% empty %}
+              <span class="emp-card__role-badge emp-card__role-badge--empty">{% trans "Без роли" %}</span>
+            {% endfor %}
+          </div>
         </div>
       </div>
       <div class="emp-card__rows">
         <div class="emp-card__row">
-          <span class="emp-card__label">Тип</span>
-          <span class="emp-card__value">Основной сотрудник</span>
-        </div>
-        <div class="emp-card__row">
-          <span class="emp-card__label">Статус</span>
+          <span class="emp-card__label">{% trans "Статус" %}</span>
           <span class="emp-card__value">
             <span class="status-badge status-badge--active">
-              <span class="status-dot"></span>Активный
+              <span class="status-dot"></span>{{ profile.get_status_display }}
             </span>
           </span>
         </div>
         <div class="emp-card__row">
-          <span class="emp-card__label">Баланс</span>
+          <span class="emp-card__label">{% trans "Баллы" %}</span>
           <span class="emp-card__value balance">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
-            120 баллов
+            {{ profile.points|default:0 }}
           </span>
         </div>
         <div class="emp-card__row">
-          <span class="emp-card__label">Прогресс</span>
-          <span class="emp-card__value">3 из 10 тем</span>
+          <span class="emp-card__label">{% trans "Прогресс" %}</span>
+          <span class="emp-card__value">{% blocktrans with done=done_topics total=total_topics %}{{ done }} из {{ total }} тем{% endblocktrans %}</span>
         </div>
       </div>
     </div>
 
-    <!-- Прогресс + Быстрые действия -->
     <div class="progress-card card">
       <div class="progress-card__top">
-        <span class="progress-card__label">Прогресс обучения</span>
-        <span class="progress-card__pct">30%</span>
+        <span class="progress-card__label">{% trans "Прогресс обучения" %}</span>
+        <span class="progress-card__pct">{{ overall_percent }}%</span>
       </div>
-      <div class="progress-track" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-fill" style="width:0%" data-target="30"></div>
+      <div class="progress-track" role="progressbar" aria-valuenow="{{ overall_percent }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-fill" style="width:0%" data-target="{{ overall_percent }}"></div>
       </div>
-      <p class="progress-card__text">Вы прошли <strong>30%</strong> обучения</p>
+      <p class="progress-card__text">{% blocktrans with pct=overall_percent %}Вы прошли <strong>{{ pct }}%</strong> обучения{% endblocktrans %}</p>
 
       <div class="progress-stats">
         <div class="progress-stat">
-          <span class="progress-stat__num">3</span>
-          <span class="progress-stat__lbl">Пройдено</span>
+          <span class="progress-stat__num">{{ done_topics }}</span>
+          <span class="progress-stat__lbl">{% trans "Пройдено" %}</span>
         </div>
         <div class="progress-stat">
-          <span class="progress-stat__num">1</span>
-          <span class="progress-stat__lbl">В процессе</span>
+          <span class="progress-stat__num">{{ in_progress_topics }}</span>
+          <span class="progress-stat__lbl">{% trans "В процессе" %}</span>
         </div>
         <div class="progress-stat">
-          <span class="progress-stat__num">6</span>
-          <span class="progress-stat__lbl">Осталось</span>
+          <span class="progress-stat__num">{{ locked_topics }}</span>
+          <span class="progress-stat__lbl">{% trans "Закрыто" %}</span>
         </div>
       </div>
 
       <div class="quick-actions">
-        <button class="qa-btn qa-btn--primary" id="btn-continue">
+        {% if next_lesson %}
+        <a class="qa-btn qa-btn--primary" href="#topic-{{ next_lesson.topic_id }}">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
-          Продолжить обучение
+          {% trans "Продолжить обучение" %}
+        </a>
+        {% else %}
+        <button class="qa-btn qa-btn--primary" disabled>
+          {% trans "Нет доступных уроков" %}
         </button>
+        {% endif %}
         <button class="qa-btn qa-btn--secondary" id="btn-search-focus">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          Найти тему
-        </button>
-        <button class="qa-btn qa-btn--secondary" id="btn-results">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-          Мои результаты
+          {% trans "Найти тему" %}
         </button>
       </div>
     </div>
 
   </div>
 
-  <!-- ── Поиск ──────────────────────────────────── -->
+  <!-- ── Поиск ── -->
   <div class="search-wrap">
     <div class="search-box">
       <svg class="search-box__icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -169,22 +191,26 @@
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <input id="search-input" class="search-box__input" type="search"
-        placeholder="Поиск по темам..." autocomplete="off" />
-      <button class="search-box__clear" id="search-clear" aria-label="Очистить" style="display:none">✕</button>
+        data-search-url="{% url 'search' %}"
+        placeholder="{% trans 'Поиск по темам и урокам…' %}" autocomplete="off" />
+      <button class="search-box__clear" id="search-clear" aria-label="{% trans 'Очистить' %}" style="display:none">✕</button>
     </div>
+    <div class="search-results" id="search-results" hidden></div>
   </div>
 
-  <!-- ── КАТЕГОРИИ (Accordion) ──────────────────── -->
+  <!-- ── КАТЕГОРИИ ── -->
   <section class="categories-section">
-    <h2 class="section-title">Категории обучения</h2>
+    <h2 class="section-title">{% trans "Категории обучения" %}</h2>
 
+    {% if course_statuses %}
     <div class="accordion" id="accordion">
-
-      <!-- ─ Категория 1 ─ -->
-      <div class="acc-item" data-cat="1">
-        <button class="acc-header" aria-expanded="false">
-          <span class="acc-header__icon">📦</span>
-          <span class="acc-header__title">Базовый уровень</span>
+      {% for cs in course_statuses %}
+      <div class="acc-item acc-item--{{ cs.state }}" data-cat="{{ cs.course.id }}">
+        <button class="acc-header" aria-expanded="false" {% if cs.state == 'locked' %}disabled{% endif %}>
+          <span class="acc-header__icon">{{ cs.course.icon|default:"📚" }}</span>
+          <span class="acc-header__title">{{ cs.course.title }}</span>
+          <span class="acc-header__meta">{{ cs.completed_topics }}/{{ cs.total_topics }}</span>
+          {% if cs.state == 'locked' %}<span class="acc-header__lock">🔒</span>{% endif %}
           <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
@@ -194,214 +220,62 @@
         <div class="acc-body">
           <div class="acc-body__inner">
 
-            <!-- 🔥 Блок «Продолжить обучение» -->
-            <div class="continue-block">
-              <div class="continue-block__label">🔥 Продолжить обучение</div>
-              <div class="continue-card">
-                <div class="continue-card__left">
-                  <div class="continue-card__step">Шаг 3 из 4</div>
-                  <div class="continue-card__title">Поведение на объекте</div>
-                  <div class="continue-card__desc">Правила общения и поведения с клиентами</div>
-                  <div class="continue-card__progress">
-                    <div class="continue-card__progress-track">
-                      <div class="continue-card__progress-fill" style="width:40%"></div>
+            {% if cs.state == 'locked' %}
+              <div class="locked-banner">
+                <span class="locked-banner__icon">🔒</span>
+                <span>{% trans "Завершите предыдущий курс, чтобы открыть этот раздел" %}</span>
+              </div>
+            {% endif %}
+
+            {% if cs.topics %}
+            <div class="all-themes">
+              <div class="all-themes__label">📚 {% trans "Все темы" %}</div>
+              <div class="theme-list">
+                {% for ts in cs.topics %}
+                  <div class="tl-item tl-item--{% if ts.state == 'done' %}done{% elif ts.state == 'current' %}current{% else %}locked{% endif %}"
+                       id="topic-{{ ts.topic.id }}"
+                       data-name="{{ ts.topic.title }}">
+                    <div class="tl-status">
+                      {% if ts.state == 'done' %}✔
+                      {% elif ts.state == 'current' %}▶
+                      {% else %}🔒{% endif %}
                     </div>
-                    <span class="continue-card__progress-txt">2 из 5 шагов</span>
+                    <div class="tl-body">
+                      <div class="tl-title">{{ ts.topic.title }}</div>
+                      <div class="tl-desc">{{ ts.completed_lessons }}/{{ ts.total_lessons }} {% trans "уроков" %}</div>
+                    </div>
+                    {% if ts.state == 'done' %}
+                      <button class="tl-btn tl-btn--done">{% trans "Повторить" %}</button>
+                    {% elif ts.state == 'current' %}
+                      <button class="tl-btn tl-btn--current">{% trans "Продолжить" %}</button>
+                    {% else %}
+                      <button class="tl-btn tl-btn--locked" disabled>{% trans "Закрыто" %}</button>
+                    {% endif %}
                   </div>
-                </div>
-                <button class="continue-card__btn">▶ Продолжить</button>
-              </div>
-              <div class="continue-next">Следующая: <strong>Инструменты и оборудование</strong></div>
-            </div>
-
-            <!-- 📚 Все темы -->
-            <div class="all-themes">
-              <div class="all-themes__label">📚 Все темы</div>
-              <div class="theme-list">
-
-                <div class="tl-item tl-item--done" data-name="Вводное обучение">
-                  <div class="tl-status">✔</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Вводное обучение</div>
-                    <div class="tl-desc">Знакомство с компанией и правилами</div>
-                  </div>
-                  <button class="tl-btn tl-btn--done">Повторить</button>
-                </div>
-
-                <div class="tl-item tl-item--done" data-name="Внешний вид">
-                  <div class="tl-status">✔</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Внешний вид</div>
-                    <div class="tl-desc">Правила формы одежды</div>
-                  </div>
-                  <button class="tl-btn tl-btn--done">Повторить</button>
-                </div>
-
-                <div class="tl-item tl-item--current" data-name="Поведение на объекте">
-                  <div class="tl-status">▶</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Поведение на объекте</div>
-                    <div class="tl-desc">Правила общения и поведения</div>
-                  </div>
-                  <button class="tl-btn tl-btn--current">Продолжить</button>
-                </div>
-
-                <div class="tl-item tl-item--locked" data-name="Инструменты и оборудование">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Инструменты и оборудование</div>
-                    <div class="tl-desc">Виды и использование инструментов</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-
+                {% endfor %}
               </div>
             </div>
+            {% else %}
+              <p class="text-dim">{% trans "В этом курсе пока нет тем." %}</p>
+            {% endif %}
 
           </div>
         </div>
       </div>
-
-      <!-- ─ Категория 2 ─ -->
-      <div class="acc-item" data-cat="2">
-        <button class="acc-header" aria-expanded="false">
-          <span class="acc-header__icon">🧹</span>
-          <span class="acc-header__title">Стандарты уборки</span>
-          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
-        <div class="acc-body">
-          <div class="acc-body__inner">
-            <div class="locked-banner">
-              <span class="locked-banner__icon">🔒</span>
-              <span>Завершите «Базовый уровень», чтобы открыть этот раздел</span>
-            </div>
-            <div class="all-themes">
-              <div class="all-themes__label">📚 Все темы</div>
-              <div class="theme-list">
-                <div class="tl-item tl-item--locked" data-name="Генеральная уборка">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Генеральная уборка</div>
-                    <div class="tl-desc">Пошаговый порядок уборки</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-                <div class="tl-item tl-item--locked" data-name="Поддерживающая уборка">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Поддерживающая уборка</div>
-                    <div class="tl-desc">Ежедневный уход за объектом</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-                <div class="tl-item tl-item--locked" data-name="Уборка после ремонта">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Уборка после ремонта</div>
-                    <div class="tl-desc">Особенности постремонтной уборки</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ─ Категория 3 ─ -->
-      <div class="acc-item" data-cat="3">
-        <button class="acc-header" aria-expanded="false">
-          <span class="acc-header__icon">🧪</span>
-          <span class="acc-header__title">Работа с химией</span>
-          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
-        <div class="acc-body">
-          <div class="acc-body__inner">
-            <div class="locked-banner">
-              <span class="locked-banner__icon">🔒</span>
-              <span>Завершите «Стандарты уборки», чтобы открыть этот раздел</span>
-            </div>
-            <div class="all-themes">
-              <div class="all-themes__label">📚 Все темы</div>
-              <div class="theme-list">
-                <div class="tl-item tl-item--locked" data-name="Виды средств">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Виды средств</div>
-                    <div class="tl-desc">Классификация моющих средств</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-                <div class="tl-item tl-item--locked" data-name="Дозировка и разбавление">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Дозировка и разбавление</div>
-                    <div class="tl-desc">Правила работы с концентратами</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ─ Категория 4 ─ -->
-      <div class="acc-item" data-cat="4">
-        <button class="acc-header" aria-expanded="false">
-          <span class="acc-header__icon">⛑️</span>
-          <span class="acc-header__title">Техника безопасности</span>
-          <svg class="acc-header__arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
-        <div class="acc-body">
-          <div class="acc-body__inner">
-            <div class="locked-banner">
-              <span class="locked-banner__icon">🔒</span>
-              <span>Завершите «Работа с химией», чтобы открыть этот раздел</span>
-            </div>
-            <div class="all-themes">
-              <div class="all-themes__label">📚 Все темы</div>
-              <div class="theme-list">
-                <div class="tl-item tl-item--locked" data-name="Охрана труда">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Охрана труда</div>
-                    <div class="tl-desc">Базовые правила безопасности</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-                <div class="tl-item tl-item--locked" data-name="Действия при аварии">
-                  <div class="tl-status">🔒</div>
-                  <div class="tl-body">
-                    <div class="tl-title">Действия при аварии</div>
-                    <div class="tl-desc">Что делать в нештатной ситуации</div>
-                  </div>
-                  <button class="tl-btn tl-btn--locked" disabled>Закрыто</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /accordion -->
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state__icon">📭</div>
+      <h3 class="empty-state__title">{% trans "Курсы не назначены" %}</h3>
+      <p class="empty-state__text">{% trans "Обратитесь к администратору — он назначит вам роль и курсы." %}</p>
+    </div>
+    {% endif %}
 
     <div class="no-results" id="no-results" style="display:none">
       <div class="no-results__icon">🔍</div>
-      <p class="no-results__text">Ничего не найдено</p>
-      <p class="no-results__sub">Попробуйте другой запрос</p>
+      <p class="no-results__text">{% trans "Ничего не найдено" %}</p>
+      <p class="no-results__sub">{% trans "Попробуйте другой запрос" %}</p>
     </div>
 
   </section>
@@ -409,6 +283,6 @@
 </div>
 </main>
 
-<script src="dashboard.js"></script>
+<script src="{% static 'dashboard.js' %}"></script>
 </body>
 </html>
