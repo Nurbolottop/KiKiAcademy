@@ -49,7 +49,7 @@ else
       --rsa-key-size 4096 \
       --agree-tos \
       --non-interactive \
-      --no-eff-email" certbot
+      --no-eff-email" certbot_kikiacademy
 
   echo "✓ Сертификат выпущен"
 fi
@@ -59,6 +59,6 @@ DOMAIN="$DOMAIN" envsubst '$DOMAIN' < "$SCRIPT_DIR/nginx/templates/app-ssl.conf.
   > "$SCRIPT_DIR/nginx/conf.d/app.conf"
 
 echo "→ Перезагружаем Nginx…"
-$COMPOSE exec nginx nginx -s reload
+$COMPOSE exec nginx_kikiacademy nginx -s reload
 
 echo "✓ Готово! Сайт доступен на https://$DOMAIN"
