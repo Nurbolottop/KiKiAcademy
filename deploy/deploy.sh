@@ -94,10 +94,10 @@ SECURE_COOKIES=True
 LANGUAGE_CODE=ru
 TIME_ZONE=Asia/Bishkek
 
-POSTGRES_DB=kiki_academy
-POSTGRES_USER=kiki
+POSTGRES_DB=kikiacademy
+POSTGRES_USER=kikiacademy_user
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-POSTGRES_HOST=db
+POSTGRES_HOST=db_kikiacademy
 POSTGRES_PORT=5432
 
 DEFAULT_STAFF_PASSWORD=12345678
@@ -132,15 +132,15 @@ DOMAIN="$DOMAIN" envsubst '$DOMAIN' < "$SCRIPT_DIR/nginx/templates/app-http.conf
 ok "Nginx-конфиг готов"
 
 # ─── 4. Билдим и запускаем контейнеры (без certbot) ───────────
-info "Собираем и запускаем контейнеры (db, redis, web, nginx)…"
-$COMPOSE up -d --build db redis web nginx
+info "Собираем и запускаем контейнеры (db_kikiacademy, redis_kikiacademy, web_kikiacademy, nginx_kikiacademy)…"
+$COMPOSE up -d --build db_kikiacademy redis_kikiacademy web_kikiacademy nginx_kikiacademy
 
 info "Ждём пока web-контейнер готов…"
 sleep 8
 
 # ─── 5. Создаём суперюзера ────────────────────────────────────
 info "Создаём администратора (FOUNDER)…"
-$COMPOSE exec -T web python manage.py create_founder \
+$COMPOSE exec -T web_kikiacademy python manage.py create_founder \
   --phone "$FOUNDER_PHONE" \
   --password "$FOUNDER_PASSWORD" \
   --first-name "$FOUNDER_FIRST_NAME" \
@@ -154,7 +154,7 @@ bash "$SCRIPT_DIR/init-letsencrypt.sh" "$DOMAIN" "$EMAIL" "$STAGING_FLAG"
 
 # ─── 7. Запускаем certbot для автоматического renewal ─────────
 info "Запускаем certbot-контейнер для auto-renewal…"
-$COMPOSE up -d certbot
+$COMPOSE up -d certbot_kikiacademy
 ok "Certbot настроен (renewal каждые 12 часов)"
 
 # ─── 8. Готово ────────────────────────────────────────────────
@@ -169,7 +169,7 @@ echo "  Пароль:       (заданный при деплое)"
 echo ""
 echo "  Управление контейнерами:"
 echo "    docker compose -f $COMPOSE_FILE ps"
-echo "    docker compose -f $COMPOSE_FILE logs -f web"
-echo "    docker compose -f $COMPOSE_FILE restart web"
+echo "    docker compose -f $COMPOSE_FILE logs -f web_kikiacademy"
+echo "    docker compose -f $COMPOSE_FILE restart web_kikiacademy"
 echo ""
 echo "════════════════════════════════════════════════════════════"

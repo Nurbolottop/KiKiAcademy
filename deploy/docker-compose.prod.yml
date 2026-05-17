@@ -1,69 +1,69 @@
 services:
-  db:
+  db_kikiacademy:
     image: postgres:14
-    container_name: kiki_db
+    container_name: postgres_db_kikiacademy
     restart: unless-stopped
     env_file: ../.env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks: [kiki_net]
+      - postgres_data_kikiacademy:/var/lib/postgresql/data
+    networks: [portfolio_network_kikiacademy]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  redis:
+  redis_kikiacademy:
     image: redis:7-alpine
-    container_name: kiki_redis
+    container_name: redis_kikiacademy
     restart: unless-stopped
-    networks: [kiki_net]
+    networks: [portfolio_network_kikiacademy]
 
-  web:
+  web_kikiacademy:
     build:
       context: ..
       dockerfile: deploy/Dockerfile.prod
-    container_name: kiki_web
+    container_name: django_web_kikiacademy
     restart: unless-stopped
     env_file: ../.env
     depends_on:
-      db:
+      db_kikiacademy:
         condition: service_healthy
-      redis:
+      redis_kikiacademy:
         condition: service_started
     volumes:
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - static_volume_kikiacademy:/app/staticfiles
+      - media_volume_kikiacademy:/app/media
     expose:
       - "8000"
-    networks: [kiki_net]
+    networks: [portfolio_network_kikiacademy]
 
-  nginx:
+  nginx_kikiacademy:
     image: nginx:alpine
-    container_name: kiki_nginx
+    container_name: nginx_kikiacademy
     restart: unless-stopped
     depends_on:
-      - web
+      - web_kikiacademy
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - static_volume:/var/www/staticfiles:ro
-      - media_volume:/var/www/media:ro
+      - static_volume_kikiacademy:/var/www/staticfiles:ro
+      - media_volume_kikiacademy:/var/www/media:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
     # Каждые 6 часов reload — чтобы подхватить обновлённые сертификаты
     command: >
       /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
-    networks: [kiki_net]
+    networks: [portfolio_network_kikiacademy]
 
-  certbot:
+  certbot_kikiacademy:
     image: certbot/certbot:latest
-    container_name: kiki_certbot
+    container_name: certbot_kikiacademy
     restart: unless-stopped
     depends_on:
-      - nginx
+      - nginx_kikiacademy
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
@@ -72,10 +72,10 @@ services:
       /bin/sh -c "trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;"
 
 volumes:
-  postgres_data:
-  static_volume:
-  media_volume:
+  postgres_data_kikiacademy:
+  static_volume_kikiacademy:
+  media_volume_kikiacademy:
 
 networks:
-  kiki_net:
+  portfolio_network_kikiacademy:
     driver: bridge
