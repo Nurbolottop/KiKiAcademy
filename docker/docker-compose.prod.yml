@@ -42,7 +42,7 @@ services:
       redis_kikiacademy:
         condition: service_started
     ports:
-      - "8000:8000"
+      - "8086:8000"
     networks:
       - portfolio_network_kikiacademy
 
