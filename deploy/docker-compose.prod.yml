@@ -26,6 +26,8 @@ services:
     container_name: django_web_kikiacademy
     restart: unless-stopped
     env_file: ../.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings.prod
     depends_on:
       db_kikiacademy:
         condition: service_healthy
@@ -34,42 +36,9 @@ services:
     volumes:
       - static_volume_kikiacademy:/app/staticfiles
       - media_volume_kikiacademy:/app/media
-    expose:
-      - "8000"
-    networks: [portfolio_network_kikiacademy]
-
-  nginx_kikiacademy:
-    image: nginx:alpine
-    container_name: nginx_kikiacademy
-    restart: unless-stopped
-    depends_on:
-      - web_kikiacademy
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - static_volume_kikiacademy:/var/www/staticfiles:ro
-      - media_volume_kikiacademy:/var/www/media:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
-      - ./certbot/www:/var/www/certbot:ro
-    # Каждые 6 часов reload — чтобы подхватить обновлённые сертификаты
-    command: >
-      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+      - "8086:8000"
     networks: [portfolio_network_kikiacademy]
-
-  certbot_kikiacademy:
-    image: certbot/certbot:latest
-    container_name: certbot_kikiacademy
-    restart: unless-stopped
-    depends_on:
-      - nginx_kikiacademy
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    # Проверять renewal каждые 12 часов
-    entrypoint: >
-      /bin/sh -c "trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;"
 
 volumes:
   postgres_data_kikiacademy:
