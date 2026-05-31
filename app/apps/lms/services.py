@@ -7,17 +7,41 @@ from apps.lms.models import Course, Enrollment, Lesson, LessonProgress, Topic
 
 
 @dataclass
+class LessonStatus:
+    lesson: Lesson
+    state: str  # 'done' | 'current' | 'locked'
+
+    @property
+    def is_completed(self) -> bool:
+        return self.state == 'done'
+
+    @property
+    def accessible(self) -> bool:
+        """Пройденный урок и текущий доступны для открытия; будущие — нет."""
+        return self.state in ('done', 'current')
+
+
+@dataclass
 class TopicStatus:
     topic: Topic
     state: str  # 'done' | 'current' | 'locked'
     completed_lessons: int
     total_lessons: int
+    lessons: list[LessonStatus]
 
     @property
     def percent(self) -> int:
         if self.total_lessons == 0:
             return 100 if self.state == 'done' else 0
         return int(self.completed_lessons / self.total_lessons * 100)
+
+    @property
+    def entry_lesson(self) -> Lesson | None:
+        """Урок, на который ведёт кнопка темы: первый незавершённый, иначе первый."""
+        for ls in self.lessons:
+            if ls.state == 'current':
+                return ls.lesson
+        return self.lessons[0].lesson if self.lessons else None
 
 
 @dataclass
@@ -41,16 +65,36 @@ def _topic_status(topic: Topic, completed_lesson_ids: set[int]) -> TopicStatus:
     total = len(published_lessons)
     completed = sum(1 for l in published_lessons if l.id in completed_lesson_ids)
 
-    if total == 0:
+    # Статусы уроков: пройденные — done, первый непройденный — current,
+    # последующие непройденные — locked. Пройденные остаются доступными.
+    lesson_statuses: list[LessonStatus] = []
+    seen_current = False
+    for l in published_lessons:
+        if l.id in completed_lesson_ids:
+            lesson_statuses.append(LessonStatus(lesson=l, state='done'))
+        elif not seen_current:
+            lesson_statuses.append(LessonStatus(lesson=l, state='current'))
+            seen_current = True
+        else:
+            lesson_statuses.append(LessonStatus(lesson=l, state='locked'))
+
+    if total == 0 or completed == total:
         state = 'done'
-    elif completed == total:
-        state = 'done'
-    elif completed > 0:
-        state = 'current'
     else:
         state = 'current'  # будет сдвинуто на locked если предыдущая тема не done
 
-    return TopicStatus(topic=topic, state=state, completed_lessons=completed, total_lessons=total)
+    return TopicStatus(
+        topic=topic, state=state,
+        completed_lessons=completed, total_lessons=total,
+        lessons=lesson_statuses,
+    )
+
+
+def _lock_topic_lessons(ts: TopicStatus) -> None:
+    """Заблокировать ещё не пройденные уроки темы (пройденные оставить доступными)."""
+    for ls in ts.lessons:
+        if ls.state != 'done':
+            ls.state = 'locked'
 
 
 def _apply_topic_locks(topic_statuses: list[TopicStatus]) -> None:
@@ -59,6 +103,7 @@ def _apply_topic_locks(topic_statuses: list[TopicStatus]) -> None:
     for ts in topic_statuses:
         if seen_unfinished and ts.state != 'done':
             ts.state = 'locked'
+            _lock_topic_lessons(ts)
             continue
         if ts.state != 'done':
             seen_unfinished = True
@@ -110,6 +155,7 @@ def build_user_progress(user, courses: Iterable[Course]) -> list[CourseStatus]:
             course_state = 'locked'
             for ts in topic_statuses:
                 ts.state = 'locked'
+                _lock_topic_lessons(ts)
 
         if course_state != 'done':
             seen_unfinished_course = True
@@ -147,17 +193,9 @@ def find_next_lesson(course_statuses: list[CourseStatus]) -> Lesson | None:
         if cs.state == 'locked':
             continue
         for ts in cs.topics:
-            if ts.state == 'locked':
+            if ts.state in ('locked', 'done'):
                 continue
-            if ts.state == 'done':
-                continue
-            for lesson in ts.topic.lessons.all():
-                if not lesson.is_published:
-                    continue
-                if cs.enrollment is None:
-                    return lesson
-                if not LessonProgress.objects.filter(
-                    enrollment=cs.enrollment, lesson=lesson, is_completed=True
-                ).exists():
-                    return lesson
+            for ls in ts.lessons:
+                if ls.state == 'current':
+                    return ls.lesson
     return None

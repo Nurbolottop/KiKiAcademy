@@ -791,3 +791,49 @@ a.qa-btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
 }
 [data-theme="dark"] .status-badge.status-badge--blocked{color:#eab308}
 [data-theme="dark"] .status-badge.status-badge--fired{color:#f87171}
+
+/* ── Кнопка-ссылка темы (a.tl-btn) ───────────────── */
+a.tl-btn { display: inline-flex; align-items: center; text-decoration: none; line-height: 1.2; }
+
+/* ── Бейдж статуса курса в заголовке аккордеона ──── */
+.acc-header__status {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.acc-header__status--done    { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-brd); }
+.acc-header__status--current { background: rgba(108,99,255,.12); color: var(--brand); border: 1px solid rgba(108,99,255,.28); }
+.acc-header__status--locked  { background: var(--surface); color: var(--text-3); border: 1px solid var(--border); }
+.acc-header__status + .acc-header__meta { margin-left: 10px; }
+
+/* ── Список уроков внутри темы ───────────────────── */
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: -4px 0 14px 52px;
+}
+.ll-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text-1, inherit);
+  font-size: .86rem;
+  transition: all var(--tr);
+}
+a.ll-item:hover { transform: translateX(3px); border-color: var(--brand); }
+.ll-item__spacer, .ll-icon { flex-shrink: 0; width: 18px; text-align: center; }
+.ll-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ll-kind { flex-shrink: 0; opacity: .7; }
+.ll-item--done    { background: var(--green-bg); border-color: var(--green-brd); color: var(--green-text); }
+.ll-item--current { border-color: rgba(108,99,255,.35); }
+.ll-item--locked  { color: var(--text-3); cursor: not-allowed; opacity: .7; }

@@ -138,22 +138,27 @@ def lesson_quiz_submit_view(request, pk: int):
 
     enrollment = _get_or_create_enrollment(request.user, lesson.topic.course)
     score_pct = int(correct / total * 100) if total else 0
+    passed = score_pct == 100
 
-    if score_pct == 100:
-        progress, _ = LessonProgress.objects.get_or_create(
-            enrollment=enrollment, lesson=lesson,
-            defaults={'is_completed': True, 'completed_at': timezone.now()},
-        )
-        if not progress.is_completed:
-            progress.is_completed = True
-            progress.completed_at = timezone.now()
-            progress.save()
+    # Фиксируем КАЖДУЮ попытку (в т.ч. неуспешную) и её результат.
+    progress, _ = LessonProgress.objects.get_or_create(
+        enrollment=enrollment, lesson=lesson,
+    )
+    progress.attempts += 1
+    progress.score_pct = score_pct
+    # Урок остаётся пройденным даже после повторной попытки с ошибками —
+    # доступ к пройденному тесту сохраняется.
+    if passed and not progress.is_completed:
+        progress.is_completed = True
+        progress.completed_at = timezone.now()
+    progress.save()
 
     return JsonResponse({
         'ok': True,
         'total': total,
         'correct': correct,
         'score_pct': score_pct,
-        'passed': score_pct == 100,
+        'passed': passed,
+        'attempts': progress.attempts,
         'details': details,
     })

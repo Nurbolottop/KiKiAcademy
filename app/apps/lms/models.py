@@ -197,6 +197,9 @@ class LessonProgress(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progress_items', verbose_name='Урок')
     is_completed = models.BooleanField(default=False, verbose_name='Завершён')
     completed_at = models.DateTimeField(null=True, blank=True)
+    # Результаты теста (для уроков типа QUIZ). Для CONTENT остаются нулевыми.
+    score_pct = models.PositiveIntegerField(default=0, verbose_name='Последний результат теста, %')
+    attempts = models.PositiveIntegerField(default=0, verbose_name='Число попыток')
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
