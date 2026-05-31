@@ -3,6 +3,7 @@
 
     python manage.py test apps.lms --settings=core.settings.test
 """
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
@@ -12,6 +13,7 @@ from apps.lms.models import (
     Course,
     Enrollment,
     Lesson,
+    LessonBlock,
     LessonProgress,
     Question,
     Role,
@@ -138,3 +140,25 @@ class AccessControlTests(BaseLMSData):
         self.client.force_login(self.user)
         resp = self.client.get(reverse('lesson_view', args=[self.l2.id]))
         self.assertEqual(resp.status_code, 200)
+
+
+class SeedCleanerCurriculumTests(TestCase):
+    def test_creates_structure_and_is_idempotent(self):
+        call_command('seed_cleaner_curriculum', verbosity=0)
+        course = Course.objects.get(title='Обучение клинера')
+        # 9 этапов = 9 тем
+        self.assertEqual(course.topics.count(), 9)
+        # Назначен роли клинера
+        cleaner = Role.objects.get(code=Role.Code.CLEANER)
+        self.assertTrue(RoleCourse.objects.filter(role=cleaner, course=course).exists())
+        # ЭТАП 1 наполнен общими стандартами (есть текстовые блоки)
+        stage1 = course.topics.get(title__startswith='ЭТАП 1')
+        self.assertTrue(
+            LessonBlock.objects.filter(lesson__topic=stage1, kind=LessonBlock.Kind.TEXT).exists()
+        )
+        lessons_after_first = Lesson.objects.count()
+
+        # Повторный запуск не создаёт дублей
+        call_command('seed_cleaner_curriculum', verbosity=0)
+        self.assertEqual(Course.objects.filter(title='Обучение клинера').count(), 1)
+        self.assertEqual(Lesson.objects.count(), lessons_after_first)
