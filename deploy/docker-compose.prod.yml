@@ -34,16 +34,17 @@ services:
       redis_kikiacademy:
         condition: service_started
     volumes:
-      - static_volume_kikiacademy:/app/staticfiles
-      - media_volume_kikiacademy:/app/media
+      # Bind-mount в host-папки, которые отдаёт внешний nginx
+      # (/static/ -> ../staticfiles, /media/ -> ../media). Через named-volume
+      # collectstatic и загрузки уходили мимо nginx и не отображались.
+      - ../staticfiles:/app/staticfiles
+      - ../media:/app/media
     ports:
       - "8086:8000"
     networks: [portfolio_network_kikiacademy]
 
 volumes:
   postgres_data_kikiacademy:
-  static_volume_kikiacademy:
-  media_volume_kikiacademy:
 
 networks:
   portfolio_network_kikiacademy:
