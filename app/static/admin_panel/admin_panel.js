@@ -576,11 +576,13 @@
 
   // ─── ROW LINKS ─────────────────────────────────────────────
   function setupRowLinks(root = document) {
-    root.querySelectorAll('tr[data-href]').forEach((row) => {
+    // tr[data-href] — строки таблиц; [data-href] с data-id — карточки (курсы и т.п.)
+    root.querySelectorAll('tr[data-href], [data-href][data-id]').forEach((row) => {
       if (row.dataset.rowBound) return;
       row.dataset.rowBound = '1';
+      row.style.cursor = 'pointer';
       row.addEventListener('click', (e) => {
-        if (e.target.closest('[data-no-link], input, label, a, button')) return;
+        if (e.target.closest('[data-no-link], [data-drag-handle], input, label, a, button')) return;
         const url = row.dataset.href;
         if (e.metaKey || e.ctrlKey || e.button === 1) {
           window.open(url, '_blank');
