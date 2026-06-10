@@ -142,9 +142,9 @@
       <a class="btn-login btn-login--ghost" href="{% url 'lesson_view' prev_lesson.pk %}">← {% trans "Предыдущий" %}</a>
     {% else %}<span></span>{% endif %}
     {% if next_lesson %}
-      <a class="btn-login btn-login--ghost" href="{% url 'lesson_view' next_lesson.pk %}">{% trans "Следующий" %} →</a>
+      <a class="btn-login" href="{% url 'lesson_view' next_lesson.pk %}">{% trans "Следующий" %} →</a>
     {% else %}
-      <a class="btn-login btn-login--ghost" href="{% url 'dashboard' %}">{% trans "К курсам" %}</a>
+      <a class="btn-login" href="{% url 'dashboard' %}">{% trans "К курсам" %}</a>
     {% endif %}
   </nav>
 

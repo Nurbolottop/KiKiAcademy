@@ -852,3 +852,25 @@ a.ll-item:hover { transform: translateX(3px); border-color: var(--brand); }
 .lesson-block--text strong { color: var(--text-1); }
 /* Разделитель между текстовыми блоками-секциями */
 .lesson-block--text + .lesson-block--text { border-top: 1px solid var(--border); padding-top: 18px; }
+
+/* ── Кнопки на странице урока (dashboard.css грузится без style.css) ── */
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand), #9B8FFF);
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 14px var(--brand-glow);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+}
+.btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(108,99,255,.45); }
+.lesson-nav .btn-login { min-width: 160px; }
+.lesson-nav .btn-login--ghost:hover { transform: translateX(-2px); }
