@@ -96,7 +96,7 @@
       </header>
       <div class="block-card__body">
         {% if b.kind == 'TEXT' %}
-          <div class="block-preview">{{ b.text|safe|truncatechars_html:300 }}</div>
+          <div class="block-preview">{{ b.text|safe }}</div>
         {% elif b.kind == 'IMAGE' %}
           {% if b.image %}
             <img class="block-preview__image" src="{{ b.image.url }}" alt="{{ b.caption }}">
