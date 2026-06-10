@@ -103,6 +103,18 @@
     }
   }
 
+  // ─── Этапы: сворачивание/разворачивание ───────────────────
+  function setupTopicAccordion() {
+    document.querySelectorAll('[data-topic-toggle]').forEach((header) => {
+      header.addEventListener('click', (e) => {
+        // Клик по кнопке/ссылке (Продолжить/Повторить) — не сворачивать
+        if (e.target.closest('a, button')) return;
+        const block = header.closest('.topic-block');
+        if (block) block.classList.toggle('is-open');
+      });
+    });
+  }
+
   // ─── Search (AJAX) ─────────────────────────────────────────
   function setupSearch() {
     const input = document.getElementById('search-input');
@@ -184,6 +196,7 @@
     setupLangSwitch();
     setupProgressBar();
     setupAccordion();
+    setupTopicAccordion();
     setupSearch();
   });
 })();
