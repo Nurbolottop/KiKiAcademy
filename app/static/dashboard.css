@@ -610,7 +610,7 @@ a.qa-btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
 .text-dim{color:var(--text-3)}
 
 /* ─── LESSON PAGE (сотрудник) ─────────────────────── */
-.lesson-page { max-width: 880px; }
+.lesson-page { max-width: 1100px; }
 .lesson-breadcrumb {
   display: flex;
   flex-wrap: wrap;
