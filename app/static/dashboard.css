@@ -228,9 +228,9 @@ ul{list-style:none}
 .acc-header__title{flex:1;font-size:1rem;font-weight:700;color:var(--text-1)}
 .acc-header__arrow{color:var(--text-3);flex-shrink:0;transition:transform .28s cubic-bezier(.22,1,.36,1)}
 .acc-item.is-open .acc-header__arrow{transform:rotate(180deg);color:var(--brand)}
-.acc-body{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.22,1,.36,1)}
-.acc-item.is-open .acc-body{max-height:1200px}
-.acc-body__inner{padding:0 16px 16px}
+.acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.22,1,.36,1)}
+.acc-item.is-open .acc-body{grid-template-rows:1fr}
+.acc-body__inner{min-height:0;overflow:hidden;padding:0 16px 16px}
 
 /* ── Theme list ─────────────────────────────────── */
 .theme-list{display:flex;flex-direction:column;gap:10px}

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{% static 'dashboard.css' %}" />
+  <link rel="stylesheet" href="{% static 'dashboard.css' %}?v=3" />
 </head>
 <body>
 
@@ -209,8 +209,8 @@
         <button class="acc-header" aria-expanded="false" {% if cs.state == 'locked' %}disabled{% endif %}>
           <span class="acc-header__icon">{{ cs.course.icon|default:"📚" }}</span>
           <span class="acc-header__title">{{ cs.course.title }}</span>
-          <span class="acc-header__status acc-header__status--{{ cs.state }}">
-            {% if cs.state == 'done' %}{% trans "Пройдено" %}{% elif cs.state == 'locked' %}{% trans "Закрыто" %}{% else %}{% trans "В процессе" %}{% endif %}
+          <span class="acc-header__status acc-header__status--{% if cs.total_topics == 0 %}locked{% else %}{{ cs.state }}{% endif %}">
+            {% if cs.total_topics == 0 %}{% trans "Пусто" %}{% elif cs.state == 'done' %}{% trans "Пройдено" %}{% elif cs.state == 'locked' %}{% trans "Закрыто" %}{% else %}{% trans "В процессе" %}{% endif %}
           </span>
           <span class="acc-header__meta">{{ cs.completed_topics }}/{{ cs.total_topics }}</span>
           {% if cs.state == 'locked' %}<span class="acc-header__lock">🔒</span>{% endif %}
@@ -313,6 +313,6 @@
 </div>
 </main>
 
-<script src="{% static 'dashboard.js' %}"></script>
+<script src="{% static 'dashboard.js' %}?v=3"></script>
 </body>
 </html>
