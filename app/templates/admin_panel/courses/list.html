@@ -22,7 +22,7 @@
         <p class="course-card__desc">{{ course.description|truncatechars:90 }}</p>
       {% endif %}
       <div class="course-card__meta">
-        <span class="course-card__count">{{ course.topics.count }} {% trans "тем" %}</span>
+        <span class="course-card__count">{{ course.topics.count }} {% trans "этапов" %}</span>
         <span class="course-card__roles">
           {% for cr in course.course_roles.all %}
             <span class="tag">{{ cr.role.title }}</span>

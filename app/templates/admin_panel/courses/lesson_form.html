@@ -32,15 +32,31 @@
       <label>{% trans "Опубликован" %}</label>
       <label class="switch">{{ form.is_published }} <span>{% trans "Виден сотрудникам" %}</span></label>
     </div>
+    <div class="form__field" id="field-threshold"{% if lesson.kind != 'QUIZ' %} style="display:none;"{% endif %}>
+      <label>{% trans "Проходной балл, %" %}</label>
+      {{ form.pass_threshold }}
+      <div class="form__help">{% trans "Сколько % правильных нужно для прохождения теста (по умолчанию 100)" %}</div>
+    </div>
     <div class="form__field form__field--full">
       <label>{% trans "Описание / введение" %}</label>
       {{ form.description }}
     </div>
   </div>
+  <script>
+    (function () {
+      var kind = document.getElementById('id_kind');
+      var box = document.getElementById('field-threshold');
+      if (kind && box) {
+        kind.addEventListener('change', function () {
+          box.style.display = (kind.value === 'QUIZ') ? '' : 'none';
+        });
+      }
+    })();
+  </script>
 
   <div class="form__actions">
     <button type="submit" class="btn btn--primary">{% trans "Сохранить" %}</button>
-    <a class="btn btn--ghost" href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{% trans "Назад к теме" %}</a>
+    <a class="btn btn--ghost" href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{% trans "Назад к этапу" %}</a>
   </div>
 </form>
 

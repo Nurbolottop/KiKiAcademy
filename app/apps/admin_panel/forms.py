@@ -178,9 +178,10 @@ class TopicForm(forms.ModelForm):
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
-        fields = ('title', 'kind', 'description', 'is_published')
+        fields = ('title', 'kind', 'description', 'is_published', 'pass_threshold')
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Краткое введение к уроку…'}),
+            'pass_threshold': forms.NumberInput(attrs={'min': 1, 'max': 100}),
         }
 
 

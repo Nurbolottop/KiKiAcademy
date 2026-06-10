@@ -144,9 +144,12 @@ def lesson_quiz_submit_view(request, pk: int):
             'correct_answer_ids': list(correct_ids),
         })
 
+    if total == 0:
+        return JsonResponse({'ok': False, 'message': 'В тесте пока нет вопросов'}, status=400)
+
     enrollment = _get_or_create_enrollment(request.user, lesson.topic.course)
-    score_pct = int(correct / total * 100) if total else 0
-    passed = score_pct == 100
+    score_pct = int(correct / total * 100)
+    passed = score_pct >= lesson.pass_threshold
 
     # Фиксируем КАЖДУЮ попытку (в т.ч. неуспешную) и её результат.
     progress, _ = LessonProgress.objects.get_or_create(
@@ -167,6 +170,7 @@ def lesson_quiz_submit_view(request, pk: int):
         'correct': correct,
         'score_pct': score_pct,
         'passed': passed,
+        'threshold': lesson.pass_threshold,
         'attempts': progress.attempts,
         'details': details,
     })

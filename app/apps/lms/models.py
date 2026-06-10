@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -90,6 +91,12 @@ class Lesson(models.Model):
     kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.CONTENT, verbose_name='Тип')
     description = models.TextField(blank=True, verbose_name='Описание / введение')
     is_published = models.BooleanField(default=True, verbose_name='Опубликован')
+    # Проходной балл теста (%). Используется только для уроков типа QUIZ.
+    pass_threshold = models.PositiveIntegerField(
+        default=100,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        verbose_name='Проходной балл, % (для теста)',
+    )
 
     class Meta:
         verbose_name = 'Урок'

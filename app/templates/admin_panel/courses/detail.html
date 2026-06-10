@@ -34,14 +34,14 @@
 
 <section class="section">
   <header class="section__head">
-    <h2 class="section__title">{% trans "Темы курса" %}</h2>
-    <button type="button" class="btn btn--primary btn--small" data-show-form="topic-create">+ {% trans "Добавить тему" %}</button>
+    <h2 class="section__title">{% trans "Этапы курса" %}</h2>
+    <button type="button" class="btn btn--primary btn--small" data-show-form="topic-create">+ {% trans "Добавить этап" %}</button>
   </header>
 
   <form id="topic-create" class="inline-form" method="post" action="{% url 'admin_panel:topic_create' course.pk %}"
         data-ajax data-reload-on-success="true" hidden>
     {% csrf_token %}
-    <input type="text" name="title" placeholder="{% trans 'Название темы' %}" required class="inline-form__input">
+    <input type="text" name="title" placeholder="{% trans 'Название этапа' %}" required class="inline-form__input">
     <button type="submit" class="btn btn--primary btn--small">{% trans "Создать" %}</button>
     <button type="button" class="btn btn--ghost btn--small" data-hide-form="topic-create">{% trans "Отмена" %}</button>
   </form>
@@ -67,7 +67,7 @@
       <div class="topic-row__actions" data-no-link>
         <a class="btn btn--small btn--ghost" href="{% url 'admin_panel:topic_detail' course.pk topic.id %}">{% trans "Открыть" %}</a>
         <form method="post" action="{% url 'admin_panel:topic_delete' course.pk topic.id %}"
-              data-ajax data-confirm="{% trans 'Удалить тему со всеми уроками?' %}"
+              data-ajax data-confirm="{% trans 'Удалить этап со всеми уроками?' %}"
               data-confirm-button="{% trans 'Удалить' %}">
           {% csrf_token %}
           <button type="submit" class="btn btn--small btn--danger-outline">×</button>
@@ -77,7 +77,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="text-dim">{% trans "В курсе пока нет тем. Добавьте первую тему выше." %}</p>
+  <p class="text-dim">{% trans "В курсе пока нет этапов. Добавьте первый этап выше." %}</p>
   {% endif %}
 </section>
 

@@ -122,6 +122,33 @@ class QuizSubmitTests(BaseLMSData):
         self.assertEqual(lp.attempts, 2)   # попытка засчитана
 
 
+class PassThresholdTests(BaseLMSData):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        # тест из двух вопросов и проходным баллом 50%
+        self.l3 = Lesson.objects.create(
+            topic=self.topic, title='Тест50', order=3,
+            kind=Lesson.Kind.QUIZ, pass_threshold=50,
+        )
+        self.qa, self.ra = _quiz_with_answer(self.l3)
+        self.qb, self.rb = _quiz_with_answer(self.l3)
+        self.url = reverse('lesson_quiz_submit', args=[self.l3.id])
+
+    def test_half_correct_passes_at_threshold_50(self):
+        resp = self.client.post(self.url, {f'q_{self.qa.id}': str(self.ra.id)})  # 1 из 2 = 50%
+        data = resp.json()
+        self.assertEqual(data['score_pct'], 50)
+        self.assertEqual(data['threshold'], 50)
+        self.assertTrue(data['passed'])
+
+    def test_empty_quiz_returns_error(self):
+        empty = Lesson.objects.create(topic=self.topic, title='ПустойТест', order=4, kind=Lesson.Kind.QUIZ)
+        resp = self.client.post(reverse('lesson_quiz_submit', args=[empty.id]))
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(resp.json()['ok'])
+
+
 class AccessControlTests(BaseLMSData):
     def test_user_without_role_has_no_access(self):
         other = User.objects.create_user(phone='+996700000002', password='pass12345')

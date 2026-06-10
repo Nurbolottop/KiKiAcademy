@@ -93,7 +93,7 @@
             ${data.correct} / ${data.total} ${(window._i18n && window._i18n.correctAnswers) || 'правильных ответов'}
             ${data.passed
               ? '<br><strong style="color:var(--green-text)">' + ((window._i18n && window._i18n.passed) || 'Тест пройден') + ' ✓</strong>'
-              : '<br><strong style="color:#ef4444">' + ((window._i18n && window._i18n.tryAgain) || 'Попробуйте ещё раз') + '</strong>'}
+              : '<br><strong style="color:#ef4444">' + ((window._i18n && window._i18n.tryAgain) || 'Попробуйте ещё раз') + (data.threshold ? ' (нужно ' + data.threshold + '%)' : '') + '</strong>'}
           </div>
         `;
         result.scrollIntoView({ behavior: 'smooth', block: 'center' });
