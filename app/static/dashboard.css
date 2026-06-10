@@ -230,7 +230,8 @@ ul{list-style:none}
 .acc-item.is-open .acc-header__arrow{transform:rotate(180deg);color:var(--brand)}
 .acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.22,1,.36,1)}
 .acc-item.is-open .acc-body{grid-template-rows:1fr}
-.acc-body__inner{min-height:0;overflow:hidden;padding:0 16px 16px}
+.acc-body__inner{min-height:0;overflow:hidden;padding:0 16px}
+.acc-item.is-open .acc-body__inner{padding-bottom:16px}
 
 /* ── Theme list ─────────────────────────────────── */
 .theme-list{display:flex;flex-direction:column;gap:10px}
@@ -497,7 +498,8 @@ ul{list-style:none}
   .header__inner{padding:0 16px}
   .header__name{display:none}
   .emp-card,.progress-card{padding:18px 16px}
-  .acc-body__inner{padding:0 12px 12px}
+  .acc-body__inner{padding:0 12px}
+  .acc-item.is-open .acc-body__inner{padding-bottom:12px}
 }
 
 /* ── Animations ─────────────────────────────────── */
