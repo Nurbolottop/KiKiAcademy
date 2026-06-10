@@ -1286,3 +1286,9 @@ a { color: inherit; text-decoration: none; }
   margin-top: -6px;
   animation: spin .8s linear infinite;
 }
+
+/* ── Превью блоков урока: акцентные заголовки и списки ─────── */
+.block-preview h3 { color: var(--brand); font-weight: 800; font-size: 1.08rem; margin: 14px 0 8px; }
+.block-preview h4 { font-weight: 700; margin: 12px 0 6px; }
+.block-preview ul, .block-preview ol { padding-left: 20px; margin: 6px 0 10px; }
+.block-preview li { margin: 5px 0; }
