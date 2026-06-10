@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django_resized.forms import ResizedImageField
 
 
 class Role(models.Model):
@@ -121,7 +122,10 @@ class LessonBlock(models.Model):
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
 
     text = models.TextField(blank=True, verbose_name='Текст')
-    image = models.ImageField(upload_to='lessons/images/', blank=True, null=True, verbose_name='Изображение')
+    image = ResizedImageField(
+        force_format='WEBP', quality=82, size=[1600, 1600], keep_meta=False,
+        upload_to='lessons/images/', blank=True, null=True, verbose_name='Изображение',
+    )
     caption = models.CharField(max_length=255, blank=True, verbose_name='Подпись')
     video_url = models.URLField(blank=True, verbose_name='URL видео (YouTube / Vimeo)')
 
