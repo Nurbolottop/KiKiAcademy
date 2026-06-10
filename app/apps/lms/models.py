@@ -67,6 +67,8 @@ class Topic(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='topics', verbose_name='Курс')
     title = models.CharField(max_length=200, verbose_name='Название')
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
+    # Доступ по ролям на уровне темы. Пусто = тема видна всем ролям курса.
+    roles = models.ManyToManyField(Role, blank=True, related_name='topics', verbose_name='Доступно ролям')
 
     class Meta:
         verbose_name = 'Тема'

@@ -54,7 +54,15 @@
       <div class="topic-row__order">{{ forloop.counter }}</div>
       <div class="topic-row__body">
         <div class="topic-row__title">{{ topic.title }}</div>
-        <div class="topic-row__meta">{{ topic.lessons.count }} {% trans "уроков" %}</div>
+        <div class="topic-row__meta">
+          {{ topic.lessons.count }} {% trans "уроков" %}
+          ·
+          {% for role in topic.roles.all %}
+            <span class="tag">{{ role.title }}</span>
+          {% empty %}
+            <span class="text-dim">{% trans "все роли курса" %}</span>
+          {% endfor %}
+        </div>
       </div>
       <div class="topic-row__actions" data-no-link>
         <a class="btn btn--small btn--ghost" href="{% url 'admin_panel:topic_detail' course.pk topic.id %}">{% trans "Открыть" %}</a>

@@ -142,12 +142,49 @@ class AccessControlTests(BaseLMSData):
         self.assertEqual(resp.status_code, 200)
 
 
+class TopicRoleAccessTests(TestCase):
+    def setUp(self):
+        self.cleaner_role = Role.objects.get(code=Role.Code.CLEANER)
+        self.manager_role = Role.objects.get(code=Role.Code.MANAGER)
+        self.course = Course.objects.create(title='Курс', order=1)
+        RoleCourse.objects.create(role=self.cleaner_role, course=self.course)
+        RoleCourse.objects.create(role=self.manager_role, course=self.course)
+
+        self.t_all = Topic.objects.create(course=self.course, title='Общая', order=1)
+        Lesson.objects.create(topic=self.t_all, title='l1', order=1)
+        self.t_mgr = Topic.objects.create(course=self.course, title='Менеджерская', order=2)
+        self.mgr_lesson = Lesson.objects.create(topic=self.t_mgr, title='lm', order=1)
+        self.t_mgr.roles.add(self.manager_role)  # ограничена ролью MANAGER
+
+        self.cleaner = User.objects.create_user(phone='+996700000010', password='x')
+        UserProfile.objects.create(user=self.cleaner).roles.add(self.cleaner_role)
+        self.manager = User.objects.create_user(phone='+996700000011', password='x')
+        UserProfile.objects.create(user=self.manager).roles.add(self.manager_role)
+
+    def test_cleaner_sees_only_unrestricted_topic(self):
+        statuses = build_user_progress(self.cleaner, [self.course])
+        titles = [ts.topic.title for ts in statuses[0].topics]
+        self.assertIn('Общая', titles)
+        self.assertNotIn('Менеджерская', titles)
+
+    def test_manager_sees_all_topics(self):
+        statuses = build_user_progress(self.manager, [self.course])
+        titles = [ts.topic.title for ts in statuses[0].topics]
+        self.assertIn('Общая', titles)
+        self.assertIn('Менеджерская', titles)
+
+    def test_role_restricted_lesson_access(self):
+        from apps.lms.views import _user_has_access
+        self.assertFalse(_user_has_access(self.cleaner, self.mgr_lesson))
+        self.assertTrue(_user_has_access(self.manager, self.mgr_lesson))
+
+
 class SeedCleanerCurriculumTests(TestCase):
     def test_creates_structure_and_is_idempotent(self):
         call_command('seed_cleaner_curriculum', verbosity=0)
         course = Course.objects.get(title='Обучение клинера')
-        # 9 этапов = 9 тем
-        self.assertEqual(course.topics.count(), 9)
+        # 8 этапов = 8 тем
+        self.assertEqual(course.topics.count(), 8)
         # Назначен роли клинера
         cleaner = Role.objects.get(code=Role.Code.CLEANER)
         self.assertTrue(RoleCourse.objects.filter(role=cleaner, course=course).exists())

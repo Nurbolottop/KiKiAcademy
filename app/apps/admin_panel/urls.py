@@ -30,6 +30,7 @@ urlpatterns = [
     path('courses/<int:course_pk>/topics/reorder/', views.topics_reorder_view, name='topics_reorder'),
     path('courses/<int:course_pk>/topics/<int:pk>/', views.topic_detail_view, name='topic_detail'),
     path('courses/<int:course_pk>/topics/<int:pk>/edit/', views.topic_edit_view, name='topic_edit'),
+    path('courses/<int:course_pk>/topics/<int:pk>/roles/', views.topic_roles_update_view, name='topic_roles_update'),
     path('courses/<int:course_pk>/topics/<int:pk>/delete/', views.topic_delete_view, name='topic_delete'),
 
     path('courses/<int:course_pk>/topics/<int:topic_pk>/lessons/create/', views.lesson_create_view, name='lesson_create'),

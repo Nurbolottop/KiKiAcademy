@@ -360,7 +360,7 @@ def course_create_view(request):
 @founder_required
 def course_detail_view(request, pk: int):
     course = get_object_or_404(
-        Course.objects.prefetch_related('topics__lessons', 'course_roles__role'),
+        Course.objects.prefetch_related('topics__lessons', 'topics__roles', 'course_roles__role'),
         pk=pk,
     )
     return render(request, 'admin_panel/courses/detail.html', {
@@ -442,14 +442,34 @@ def topic_create_view(request, course_pk: int):
 @founder_required
 def topic_detail_view(request, course_pk: int, pk: int):
     topic = get_object_or_404(
-        Topic.objects.select_related('course').prefetch_related('lessons'),
+        Topic.objects.select_related('course').prefetch_related('lessons', 'roles'),
         pk=pk, course_id=course_pk,
     )
+    # Роли курса — из них выбираем, кому видна тема. Пусто = всем ролям курса.
+    course_roles = [cr.role for cr in topic.course.course_roles.select_related('role')]
+    topic_role_ids = set(topic.roles.values_list('id', flat=True))
     return render(request, 'admin_panel/courses/topic_detail.html', {
         'course': topic.course,
         'topic': topic,
         'lesson_form': LessonForm(),
+        'course_roles': course_roles,
+        'topic_role_ids': topic_role_ids,
     })
+
+
+@founder_required
+@require_POST
+def topic_roles_update_view(request, course_pk: int, pk: int):
+    """Обновляет роли, которым видна тема (ограничено ролями курса)."""
+    topic = get_object_or_404(Topic, pk=pk, course_id=course_pk)
+    course_role_ids = set(topic.course.course_roles.values_list('role_id', flat=True))
+    selected = {int(x) for x in request.POST.getlist('roles') if x.isdigit()} & course_role_ids
+    topic.roles.set(Role.objects.filter(id__in=selected))
+    msg = 'Доступ темы обновлён'
+    if is_ajax(request):
+        return ajax_ok(msg)
+    messages.success(request, msg)
+    return redirect('admin_panel:topic_detail', course_pk=course_pk, pk=pk)
 
 
 @founder_required

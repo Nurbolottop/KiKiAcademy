@@ -16,6 +16,33 @@
 
 <section class="section">
   <header class="section__head">
+    <h2 class="section__title">{% trans "Доступ по ролям" %}</h2>
+  </header>
+  {% if course_roles %}
+  <form method="post" action="{% url 'admin_panel:topic_roles_update' course.pk topic.pk %}" data-ajax style="max-width:720px;">
+    {% csrf_token %}
+    <p class="text-dim" style="margin-bottom:10px;">
+      {% trans "Отметьте роли, которым видна тема. Если ничего не отмечено — тема видна всем ролям курса." %}
+    </p>
+    <div class="role-checks" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;">
+      {% for role in course_roles %}
+      <label class="role-check" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" name="roles" value="{{ role.id }}" {% if role.id in topic_role_ids %}checked{% endif %}>
+        <span>{{ role.title }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn--primary btn--small">{% trans "Сохранить доступ" %}</button>
+  </form>
+  {% else %}
+  <p class="text-dim">
+    {% trans "У курса не назначены роли — сначала назначьте роли курсу, тогда тему можно ограничить ими." %}
+  </p>
+  {% endif %}
+</section>
+
+<section class="section">
+  <header class="section__head">
     <h2 class="section__title">{% trans "Уроки темы" %}</h2>
     <button type="button" class="btn btn--primary btn--small" data-show-form="lesson-create">+ {% trans "Добавить урок" %}</button>
   </header>

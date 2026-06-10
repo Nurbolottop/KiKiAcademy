@@ -109,14 +109,26 @@ def _apply_topic_locks(topic_statuses: list[TopicStatus]) -> None:
             seen_unfinished = True
 
 
+def _topic_visible_to(topic: Topic, role_ids: set[int]) -> bool:
+    """Тема видна, если у неё не заданы роли (наследует курс) либо роли пересекаются."""
+    topic_role_ids = {r.id for r in topic.roles.all()}
+    if not topic_role_ids:
+        return True
+    return bool(topic_role_ids & role_ids)
+
+
 def build_user_progress(user, courses: Iterable[Course]) -> list[CourseStatus]:
     """
     Возвращает список CourseStatus в порядке, в котором сотрудник должен их проходить.
     Последовательные локи: курс N+1 locked пока курс N не done.
+    Темы фильтруются по ролям пользователя (Topic.roles).
     """
     courses = list(courses)
     if not courses:
         return []
+
+    profile = getattr(user, 'profile', None)
+    role_ids: set[int] = set(profile.roles.values_list('id', flat=True)) if profile else set()
 
     enrollments = {
         e.course_id: e
@@ -133,11 +145,13 @@ def build_user_progress(user, courses: Iterable[Course]) -> list[CourseStatus]:
     seen_unfinished_course = False
 
     for course in courses:
-        topics_qs = list(
-            course.topics.all().prefetch_related(
-                Prefetch('lessons', queryset=Lesson.objects.filter(is_published=True))
+        topics_qs = [
+            t for t in course.topics.all().prefetch_related(
+                'roles',
+                Prefetch('lessons', queryset=Lesson.objects.filter(is_published=True)),
             )
-        )
+            if _topic_visible_to(t, role_ids)
+        ]
         topic_statuses = [_topic_status(t, completed_lesson_ids) for t in topics_qs]
         _apply_topic_locks(topic_statuses)
 

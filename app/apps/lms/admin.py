@@ -47,6 +47,7 @@ class TopicAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     inlines = (LessonInline,)
     autocomplete_fields = ('course',)
+    filter_horizontal = ('roles',)
 
 
 @admin.register(models.Lesson)

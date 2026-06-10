@@ -13,12 +13,20 @@ from apps.lms.models import (
 
 
 def _user_has_access(user, lesson: Lesson) -> bool:
-    """Сотрудник имеет доступ к уроку если урок принадлежит курсу его роли."""
+    """Доступ к уроку: курс назначен роли сотрудника И тема видна его ролям.
+
+    Роли темы (Topic.roles): пусто — наследует курс; иначе нужна пересекающаяся роль.
+    """
     profile = getattr(user, 'profile', None)
     if not profile:
         return False
-    role_ids = list(profile.roles.values_list('id', flat=True))
-    return lesson.topic.course.course_roles.filter(role_id__in=role_ids).exists()
+    role_ids = set(profile.roles.values_list('id', flat=True))
+    if not lesson.topic.course.course_roles.filter(role_id__in=role_ids).exists():
+        return False
+    topic_role_ids = set(lesson.topic.roles.values_list('id', flat=True))
+    if topic_role_ids and not (topic_role_ids & role_ids):
+        return False
+    return True
 
 
 def _get_or_create_enrollment(user, course) -> Enrollment:
