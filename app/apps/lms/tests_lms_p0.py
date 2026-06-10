@@ -122,6 +122,31 @@ class QuizSubmitTests(BaseLMSData):
         self.assertEqual(lp.attempts, 2)   # попытка засчитана
 
 
+class FullAccessTests(BaseLMSData):
+    def test_full_access_unlocks_all_lessons(self):
+        # без full_access первый урок current, второй locked
+        statuses = build_user_progress(self.user, [self.course])
+        self.assertEqual(statuses[0].topics[0].lessons[1].state, 'locked')
+        # с full_access — всё открыто
+        self.profile.full_access = True
+        self.profile.save()
+        statuses = build_user_progress(self.user, [self.course], full_access=True)
+        states = [ls.state for ls in statuses[0].topics[0].lessons]
+        self.assertNotIn('locked', states)
+        self.assertTrue(all(ls.accessible for ls in statuses[0].topics[0].lessons))
+
+    def test_full_access_grants_lesson_access(self):
+        from apps.lms.views import _user_has_access
+        # урок чужого курса (без роли пользователя)
+        other_course = Course.objects.create(title='Чужой', order=5)
+        ot = Topic.objects.create(course=other_course, title='T', order=1)
+        ol = Lesson.objects.create(topic=ot, title='L', order=1)
+        self.assertFalse(_user_has_access(self.user, ol))
+        self.profile.full_access = True
+        self.profile.save()
+        self.assertTrue(_user_has_access(self.user, ol))
+
+
 class PassThresholdTests(BaseLMSData):
     def setUp(self):
         super().setUp()

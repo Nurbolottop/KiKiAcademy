@@ -117,11 +117,13 @@ def _topic_visible_to(topic: Topic, role_ids: set[int]) -> bool:
     return bool(topic_role_ids & role_ids)
 
 
-def build_user_progress(user, courses: Iterable[Course]) -> list[CourseStatus]:
+def build_user_progress(user, courses: Iterable[Course], full_access: bool = False) -> list[CourseStatus]:
     """
     Возвращает список CourseStatus в порядке, в котором сотрудник должен их проходить.
     Последовательные локи: курс N+1 locked пока курс N не done.
     Темы фильтруются по ролям пользователя (Topic.roles).
+
+    full_access=True: все темы видны, ничего не блокируется (всё открыто).
     """
     courses = list(courses)
     if not courses:
@@ -150,10 +152,17 @@ def build_user_progress(user, courses: Iterable[Course]) -> list[CourseStatus]:
                 'roles',
                 Prefetch('lessons', queryset=Lesson.objects.filter(is_published=True)),
             )
-            if _topic_visible_to(t, role_ids)
+            if full_access or _topic_visible_to(t, role_ids)
         ]
         topic_statuses = [_topic_status(t, completed_lesson_ids) for t in topics_qs]
-        _apply_topic_locks(topic_statuses)
+        if full_access:
+            # Снимаем блокировки уроков — всё открыто.
+            for ts in topic_statuses:
+                for ls in ts.lessons:
+                    if ls.state == 'locked':
+                        ls.state = 'current'
+        else:
+            _apply_topic_locks(topic_statuses)
 
         total_topics = len(topic_statuses)
         completed_topics = sum(1 for t in topic_statuses if t.state == 'done')
@@ -165,7 +174,7 @@ def build_user_progress(user, courses: Iterable[Course]) -> list[CourseStatus]:
         else:
             course_state = 'current'
 
-        if seen_unfinished_course and course_state != 'done':
+        if not full_access and seen_unfinished_course and course_state != 'done':
             course_state = 'locked'
             for ts in topic_statuses:
                 ts.state = 'locked'

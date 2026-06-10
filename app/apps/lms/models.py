@@ -33,6 +33,8 @@ class UserProfile(models.Model):
     roles = models.ManyToManyField(Role, related_name='users', blank=True, verbose_name='Роли')
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE, verbose_name='Статус')
     points = models.PositiveIntegerField(default=0, verbose_name='Баллы')
+    # Полный доступ: видны все курсы, все этапы и уроки открыты (без блокировок).
+    full_access = models.BooleanField(default=False, verbose_name='Полный доступ ко всем курсам')
     hired_at = models.DateField(auto_now_add=True, verbose_name='Дата найма')
     fired_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата увольнения')
 

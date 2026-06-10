@@ -12,8 +12,9 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'roles_display', 'status', 'hired_at', 'fired_at')
-    list_filter = ('status', 'roles')
+    list_display = ('user', 'roles_display', 'status', 'full_access', 'hired_at', 'fired_at')
+    list_filter = ('status', 'roles', 'full_access')
+    list_editable = ('full_access',)
     search_fields = ('user__phone', 'user__email', 'user__first_name', 'user__last_name')
     autocomplete_fields = ('user',)
     filter_horizontal = ('roles',)

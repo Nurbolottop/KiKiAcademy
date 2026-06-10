@@ -43,16 +43,20 @@ def dashboard_view(request):
 
     profile = getattr(request.user, 'profile', None)
     roles = list(profile.roles.all()) if profile else []
+    full_access = bool(profile and profile.full_access)
 
-    role_ids = [r.id for r in roles]
-    courses = (
-        Course.objects
-        .filter(course_roles__role_id__in=role_ids)
-        .distinct()
-        .order_by('order', 'id')
-    )
+    if full_access:
+        courses = Course.objects.all().order_by('order', 'id')
+    else:
+        role_ids = [r.id for r in roles]
+        courses = (
+            Course.objects
+            .filter(course_roles__role_id__in=role_ids)
+            .distinct()
+            .order_by('order', 'id')
+        )
 
-    course_statuses = build_user_progress(request.user, courses)
+    course_statuses = build_user_progress(request.user, courses, full_access=full_access)
     done, in_progress, locked, total = overall_progress(course_statuses)
     overall_percent = int(done / total * 100) if total else 0
     next_lesson = find_next_lesson(course_statuses)

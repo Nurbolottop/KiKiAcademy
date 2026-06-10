@@ -20,6 +20,8 @@ def _user_has_access(user, lesson: Lesson) -> bool:
     profile = getattr(user, 'profile', None)
     if not profile:
         return False
+    if profile.full_access:
+        return True
     role_ids = set(profile.roles.values_list('id', flat=True))
     if not lesson.topic.course.course_roles.filter(role_id__in=role_ids).exists():
         return False
