@@ -5,7 +5,16 @@
 уроков ЭТАП 5 и пересобирает тест.
 
     python manage.py seed_stage5_content
+    python manage.py seed_stage5_content --no-images   # только текст, без загрузки фото
+
+Фото поверхностей подбираются автоматически из Wikimedia Commons (свободные
+лицензии), скачиваются и сжимаются в WEBP (ResizedImageField).
 """
+import json
+import urllib.parse
+import urllib.request
+
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -14,6 +23,23 @@ from apps.lms.models import Answer, Course, Lesson, LessonBlock, Question, Topic
 COURSE_TITLE = 'Обучение клинера'
 TOPIC_TITLE = 'ЭТАП 5 — Поверхности'
 EXAMPLE_VIDEO = 'https://youtu.be/EXAMPLE'
+
+UA = {'User-Agent': 'KIKIAcademyBot/1.0 (internal training; contact admin)'}
+COMMONS_API = 'https://commons.wikimedia.org/w/api.php'
+
+# Поисковые запросы фото для каждой поверхности (Wikimedia Commons, англ.)
+IMAGE_QUERIES = {
+    'Стекло': 'window cleaning glass',
+    'Зеркало': 'mirror wall room',
+    'Ламинат': 'laminate flooring',
+    'Паркет': 'parquet wood floor',
+    'Кафель': 'ceramic tile bathroom wall',
+    'Мрамор': 'marble floor surface',
+    'Мебель': 'wooden furniture living room',
+    'Кухонные поверхности': 'kitchen countertop worktop',
+    'Техника': 'stainless steel kitchen appliances',
+    'Деликатные поверхности': 'leather sofa armchair',
+}
 
 
 def _callout(html, color):
@@ -251,11 +277,48 @@ QUIZ = [
 ]
 
 
+def fetch_commons_image(query, timeout=60):
+    """Ищет фото на Wikimedia Commons и возвращает (bytes, source_url) или (None, None)."""
+    params = urllib.parse.urlencode({
+        'action': 'query', 'generator': 'search',
+        'gsrsearch': f'filetype:bitmap {query}',
+        'gsrnamespace': '6', 'gsrlimit': '8',
+        'prop': 'imageinfo', 'iiprop': 'url|mime', 'iiurlwidth': '1400',
+        'format': 'json',
+    })
+    req = urllib.request.Request(f'{COMMONS_API}?{params}', headers=UA)
+    try:
+        data = json.load(urllib.request.urlopen(req, timeout=timeout))
+    except Exception:
+        return None, None
+    pages = (data.get('query') or {}).get('pages') or {}
+    items = sorted(pages.values(), key=lambda p: p.get('index', 999))
+    for p in items:
+        info = (p.get('imageinfo') or [{}])[0]
+        mime = info.get('mime', '')
+        url = info.get('thumburl') or info.get('url')
+        if not url or not mime.startswith('image/') or 'svg' in mime:
+            continue
+        try:
+            img = urllib.request.urlopen(
+                urllib.request.Request(url, headers=UA), timeout=timeout).read()
+        except Exception:
+            continue
+        if img and len(img) > 5000:  # отсекаем заглушки/ошибки
+            return img, info.get('descriptionurl') or url
+    return None, None
+
+
 class Command(BaseCommand):
-    help = 'Наполняет ЭТАП 5 — Поверхности учебным контентом и тестом.'
+    help = 'Наполняет ЭТАП 5 — Поверхности учебным контентом, фото и тестом.'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--no-images', action='store_true',
+                            help='Не скачивать фото, только текст.')
 
     @transaction.atomic
     def handle(self, *args, **options):
+        no_images = options['no_images']
         course = Course.objects.filter(title=COURSE_TITLE).first()
         if not course:
             self.stdout.write(self.style.WARNING(f'Курс «{COURSE_TITLE}» не найден.'))
@@ -265,7 +328,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f'Этап «{TOPIC_TITLE}» не найден.'))
             return
 
-        blocks_n = 0
+        blocks_n = img_ok = img_fail = 0
         for order, (title, items) in enumerate(LESSONS, start=1):
             lesson = Lesson.objects.filter(topic=topic, title=title).first()
             if not lesson:
@@ -274,6 +337,7 @@ class Command(BaseCommand):
             lesson.order = order
             lesson.save(update_fields=['order'])
             lesson.blocks.all().delete()
+            last_order = 0
             for b_order, (kind, payload) in enumerate(items, start=1):
                 if kind == 'text':
                     LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.TEXT,
@@ -286,6 +350,32 @@ class Command(BaseCommand):
                     LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.VIDEO,
                                                order=b_order, video_url=url, caption=caption)
                 blocks_n += 1
+                last_order = b_order
+
+            # Фото поверхности из Wikimedia Commons
+            query = IMAGE_QUERIES.get(title)
+            if query and not no_images:
+                img, src = fetch_commons_image(query)
+                if img:
+                    # Заполняем первый пустой фото-блок, иначе добавляем новый в конец.
+                    block = lesson.blocks.filter(
+                        kind=LessonBlock.Kind.IMAGE, image='').order_by('order').first()
+                    if not block:
+                        last_order += 1
+                        block = LessonBlock.objects.create(
+                            lesson=lesson, kind=LessonBlock.Kind.IMAGE, order=last_order)
+                        blocks_n += 1
+                    if not block.caption:
+                        block.caption = f'{title} · фото: Wikimedia Commons'
+                    else:
+                        block.caption = f'{block.caption} · фото: Wikimedia Commons'
+                    block.image.save(f'surface-{order}.jpg', ContentFile(img), save=True)
+                    img_ok += 1
+                    self.stdout.write(f'    🖼  {title}: фото загружено')
+                else:
+                    img_fail += 1
+                    self.stdout.write(self.style.WARNING(f'    ! {title}: фото не найдено'))
+
             self.stdout.write(f'  ✓ {title} ({len(items)} блоков)')
 
         quiz = Lesson.objects.filter(topic=topic, title='Тест', kind=Lesson.Kind.QUIZ).first()
@@ -303,5 +393,6 @@ class Command(BaseCommand):
             self.stdout.write(f'  ✓ Тест: {q_n} вопросов')
 
         self.stdout.write(self.style.SUCCESS(
-            f'Готово. Блоков: {blocks_n}, вопросов в тесте: {q_n}.'
+            f'Готово. Блоков: {blocks_n}, фото: {img_ok} загружено / {img_fail} не найдено, '
+            f'вопросов в тесте: {q_n}.'
         ))
