@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export SSHPASS='cMqF+W_6Xd,X,F')",
+      "Bash(sshpass -e ssh -o StrictHostKeyChecking=accept-new root@72.56.13.100 ' *)"
+    ]
+  }
+}
