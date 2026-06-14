@@ -11,6 +11,7 @@
 лицензии), скачиваются и сжимаются в WEBP (ResizedImageField).
 """
 import json
+import time
 import urllib.parse
 import urllib.request
 
@@ -277,6 +278,17 @@ QUIZ = [
 ]
 
 
+def _get(url, timeout, retries=4):
+    """GET с повторами и бэкоффом (Wikimedia режет частые запросы — 429)."""
+    for attempt in range(retries):
+        try:
+            return urllib.request.urlopen(
+                urllib.request.Request(url, headers=UA), timeout=timeout).read()
+        except Exception:
+            time.sleep(2 * (attempt + 1))
+    return None
+
+
 def fetch_commons_image(query, timeout=60):
     """Ищет фото на Wikimedia Commons и возвращает (bytes, source_url) или (None, None)."""
     params = urllib.parse.urlencode({
@@ -286,9 +298,11 @@ def fetch_commons_image(query, timeout=60):
         'prop': 'imageinfo', 'iiprop': 'url|mime', 'iiurlwidth': '1400',
         'format': 'json',
     })
-    req = urllib.request.Request(f'{COMMONS_API}?{params}', headers=UA)
+    raw = _get(f'{COMMONS_API}?{params}', timeout)
+    if not raw:
+        return None, None
     try:
-        data = json.load(urllib.request.urlopen(req, timeout=timeout))
+        data = json.loads(raw)
     except Exception:
         return None, None
     pages = (data.get('query') or {}).get('pages') or {}
@@ -299,11 +313,7 @@ def fetch_commons_image(query, timeout=60):
         url = info.get('thumburl') or info.get('url')
         if not url or not mime.startswith('image/') or 'svg' in mime:
             continue
-        try:
-            img = urllib.request.urlopen(
-                urllib.request.Request(url, headers=UA), timeout=timeout).read()
-        except Exception:
-            continue
+        img = _get(url, timeout)
         if img and len(img) > 5000:  # отсекаем заглушки/ошибки
             return img, info.get('descriptionurl') or url
     return None, None
@@ -355,6 +365,7 @@ class Command(BaseCommand):
             # Фото поверхности из Wikimedia Commons
             query = IMAGE_QUERIES.get(title)
             if query and not no_images:
+                time.sleep(1.5)  # пауза, чтобы Wikimedia не резал частые запросы
                 img, src = fetch_commons_image(query)
                 if img:
                     # Заполняем первый пустой фото-блок, иначе добавляем новый в конец.
