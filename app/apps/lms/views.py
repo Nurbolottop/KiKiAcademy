@@ -8,6 +8,7 @@ from apps.lms.models import (
     Enrollment,
     Lesson,
     LessonProgress,
+    QuizAttempt,
     Role,
 )
 
@@ -131,6 +132,7 @@ def lesson_quiz_submit_view(request, pk: int):
     total = 0
     correct = 0
     details = []
+    snapshot = []  # снимок попытки для истории/разбора ошибок
     questions = lesson.questions.order_by('order', 'id').prefetch_related('answers')
 
     for q in questions:
@@ -144,6 +146,15 @@ def lesson_quiz_submit_view(request, pk: int):
             'question_id': q.id,
             'is_right': is_right,
             'correct_answer_ids': list(correct_ids),
+        })
+        snapshot.append({
+            'question': q.text,
+            'is_right': is_right,
+            'answers': [{
+                'text': a.text,
+                'selected': str(a.id) in selected_ids,
+                'correct': a.is_correct,
+            } for a in q.answers.all()],
         })
 
     if total == 0:
@@ -166,6 +177,13 @@ def lesson_quiz_submit_view(request, pk: int):
         progress.completed_at = timezone.now()
     progress.save()
 
+    # История попытки — со снимком вопросов и выбранных ответов.
+    QuizAttempt.objects.create(
+        user=request.user, lesson=lesson,
+        score_pct=score_pct, correct_count=correct, total_count=total,
+        passed=passed, detail=snapshot,
+    )
+
     return JsonResponse({
         'ok': True,
         'total': total,
@@ -175,4 +193,32 @@ def lesson_quiz_submit_view(request, pk: int):
         'threshold': lesson.pass_threshold,
         'attempts': progress.attempts,
         'details': details,
+    })
+
+
+@login_required
+def lesson_quiz_history_view(request, pk: int):
+    """История попыток теста для текущего пользователя."""
+    lesson = get_object_or_404(Lesson, pk=pk, kind=Lesson.Kind.QUIZ)
+    if not _user_has_access(request.user, lesson):
+        return redirect('dashboard')
+    attempts = QuizAttempt.objects.filter(user=request.user, lesson=lesson)
+    return render(request, 'lms/quiz_history.html', {
+        'lesson': lesson,
+        'attempts': attempts,
+    })
+
+
+@login_required
+def quiz_attempt_view(request, pk: int):
+    """Разбор одной попытки: вопросы, что выбрал сотрудник и где ошибся."""
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related('lesson', 'lesson__topic'), pk=pk)
+    profile = getattr(request.user, 'profile', None)
+    is_founder = bool(profile and profile.roles.filter(code=Role.Code.FOUNDER).exists())
+    if attempt.user_id != request.user.id and not is_founder:
+        return redirect('dashboard')
+    return render(request, 'lms/quiz_attempt.html', {
+        'attempt': attempt,
+        'lesson': attempt.lesson,
     })

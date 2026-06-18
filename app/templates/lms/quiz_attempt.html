@@ -1,0 +1,81 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% trans "Разбор попытки" %} — {{ lesson.title }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'dashboard.css' %}?v=7" />
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a class="header__brand" href="{% url 'dashboard' %}">
+      <span class="header__name">KIKI Academy</span>
+    </a>
+  </div>
+</header>
+
+<main class="main">
+<div class="container lesson-page">
+
+  <div class="lesson-breadcrumb">
+    <a href="{% url 'dashboard' %}">{% trans "Курсы" %}</a>
+    <span>›</span>
+    <a href="{% url 'lesson_view' lesson.pk %}">{{ lesson.title }}</a>
+    <span>›</span>
+    <a href="{% url 'lesson_quiz_history' lesson.pk %}">{% trans "История" %}</a>
+    <span>›</span>
+    <span>{% trans "Разбор" %}</span>
+  </div>
+
+  <div class="quiz-result quiz-result--{% if attempt.passed %}passed{% else %}failed{% endif %}" style="margin-bottom:24px;">
+    <div class="quiz-result__score">{{ attempt.score_pct }}%</div>
+    <div class="quiz-result__text">
+      {{ attempt.correct_count }} / {{ attempt.total_count }} {% trans "правильных ответов" %}
+      · {{ attempt.created_at|date:"d.m.Y H:i" }}
+      {% if attempt.passed %}
+        <br><strong style="color:var(--green-text)">{% trans "Тест пройден" %} ✓</strong>
+      {% else %}
+        <br><strong style="color:#ef4444">{% trans "Тест не пройден" %}</strong>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="quiz">
+    {% for q in attempt.detail %}
+    <div class="quiz-question {% if q.is_right %}is-right{% else %}is-wrong{% endif %}">
+      <div class="quiz-question__num">{{ forloop.counter }}{% if q.is_right %} ✓{% else %} ✗{% endif %}</div>
+      <div class="quiz-question__text">{{ q.question }}</div>
+      <ul class="quiz-answers">
+        {% for a in q.answers %}
+        <li class="quiz-answer
+            {% if a.correct %}is-correct{% endif %}
+            {% if a.selected and not a.correct %}is-wrong{% endif %}">
+          <label>
+            <span class="quiz-answer__mark">
+              {% if a.selected and a.correct %}✓{% elif a.selected and not a.correct %}✗{% elif a.correct %}✓{% else %}○{% endif %}
+            </span>
+            <span>{{ a.text }}
+              {% if a.selected %}<em class="quiz-answer__tag">— {% trans "твой ответ" %}</em>{% endif %}
+              {% if a.correct and not a.selected %}<em class="quiz-answer__tag">— {% trans "верный" %}</em>{% endif %}
+            </span>
+          </label>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+
+  <nav class="lesson-nav">
+    <a class="btn-login btn-login--ghost" href="{% url 'lesson_quiz_history' lesson.pk %}">← {% trans "К истории" %}</a>
+    <a class="btn-login" href="{% url 'lesson_view' lesson.pk %}">{% trans "Пройти снова" %}</a>
+  </nav>
+
+</div>
+</main>
+
+</body>
+</html>

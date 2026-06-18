@@ -925,3 +925,28 @@ a.ll-item:hover {
 .topic-block .lesson-list { display: none; }
 .topic-block.is-open .lesson-list { display: flex; }
 .topic-block.is-open .tl-chevron { transform: rotate(180deg); }
+
+/* ─── История попыток теста и разбор ─── */
+.quiz-history-link { margin-top: 18px; text-align: center; }
+.quiz-history-link a { color: var(--brand); font-weight: 600; text-decoration: none; }
+.quiz-history-link a:hover { text-decoration: underline; }
+
+.quiz-history { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+.quiz-history__row {
+  display: flex; align-items: center; gap: 16px; text-decoration: none;
+  padding: 14px 18px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); transition: border-color .18s, transform .18s;
+}
+.quiz-history__row:hover { border-color: var(--brand); transform: translateY(-1px); }
+.quiz-history__row.is-passed { border-left: 4px solid var(--green-text); }
+.quiz-history__row.is-failed { border-left: 4px solid #ef4444; }
+.quiz-history__score { font-size: 1.4rem; font-weight: 800; min-width: 64px; }
+.quiz-history__meta { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.quiz-history__result { font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.quiz-history__date { color: var(--text-3); font-size: 0.85rem; }
+.quiz-history__arrow { color: var(--brand); font-weight: 600; white-space: nowrap; }
+
+.quiz-answer__mark { display: inline-block; width: 20px; font-weight: 700; }
+.quiz-answer__tag { font-style: normal; font-size: 0.82rem; color: var(--text-3); margin-left: 4px; }
+.quiz-answer.is-correct .quiz-answer__mark { color: var(--green-text); }
+.quiz-answer.is-wrong .quiz-answer__mark { color: #ef4444; }

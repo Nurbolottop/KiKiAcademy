@@ -230,3 +230,30 @@ class LessonProgress(models.Model):
 
     def __str__(self) -> str:
         return f"{self.enrollment} | {self.lesson}"
+
+
+class QuizAttempt(models.Model):
+    """История одной попытки прохождения теста — со снимком вопросов и ответов,
+    чтобы сотрудник мог потом разобрать свои ошибки."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='quiz_attempts', verbose_name='Пользователь')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE,
+                               related_name='quiz_attempts', verbose_name='Тест')
+    score_pct = models.PositiveIntegerField(default=0, verbose_name='Результат, %')
+    correct_count = models.PositiveIntegerField(default=0, verbose_name='Верных ответов')
+    total_count = models.PositiveIntegerField(default=0, verbose_name='Всего вопросов')
+    passed = models.BooleanField(default=False, verbose_name='Пройден')
+    # Снимок: [{question, is_right, answers:[{text, selected, correct}]}]
+    detail = models.JSONField(default=list, blank=True, verbose_name='Разбор ответов')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата попытки')
+
+    class Meta:
+        verbose_name = 'Попытка теста'
+        verbose_name_plural = 'История тестов'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'lesson', '-created_at']),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user} | {self.lesson} | {self.score_pct}%"

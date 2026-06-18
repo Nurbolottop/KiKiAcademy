@@ -148,6 +148,7 @@
           <th>{% trans "Попытки" %}</th>
           <th>{% trans "Статус" %}</th>
           <th>{% trans "Дата" %}</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -166,6 +167,11 @@
             <span class="text-dim">· {% trans "порог" %} {{ r.threshold }}%</span>
           </td>
           <td>{{ r.updated_at|date:"d.m.Y H:i" }}</td>
+          <td>
+            {% if r.attempt_id %}
+              <a class="btn btn--ghost btn--sm" href="{% url 'quiz_attempt' r.attempt_id %}" target="_blank">{% trans "Разбор" %}</a>
+            {% else %}—{% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>

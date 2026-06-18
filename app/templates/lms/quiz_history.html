@@ -1,0 +1,68 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% trans "История теста" %} — {{ lesson.title }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'dashboard.css' %}?v=7" />
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a class="header__brand" href="{% url 'dashboard' %}">
+      <span class="header__name">KIKI Academy</span>
+    </a>
+  </div>
+</header>
+
+<main class="main">
+<div class="container lesson-page">
+
+  <div class="lesson-breadcrumb">
+    <a href="{% url 'dashboard' %}">{% trans "Курсы" %}</a>
+    <span>›</span>
+    <a href="{% url 'lesson_view' lesson.pk %}">{{ lesson.title }}</a>
+    <span>›</span>
+    <span>{% trans "История попыток" %}</span>
+  </div>
+
+  <h1 class="lesson-title">{% trans "История попыток" %}</h1>
+  <p class="text-dim">{% trans "Здесь сохраняются все твои попытки. Открой любую, чтобы разобрать ошибки." %}</p>
+
+  {% if attempts %}
+  <div class="quiz-history">
+    {% for a in attempts %}
+    <a class="quiz-history__row {% if a.passed %}is-passed{% else %}is-failed{% endif %}"
+       href="{% url 'quiz_attempt' a.pk %}">
+      <div class="quiz-history__score">{{ a.score_pct }}%</div>
+      <div class="quiz-history__meta">
+        <div class="quiz-history__result">
+          {{ a.correct_count }} / {{ a.total_count }} {% trans "верных" %}
+          {% if a.passed %}
+            <span class="status status--active">✓ {% trans "Сдан" %}</span>
+          {% else %}
+            <span class="status status--blocked">✗ {% trans "Не сдан" %}</span>
+          {% endif %}
+        </div>
+        <div class="quiz-history__date">{{ a.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+      <div class="quiz-history__arrow">{% trans "Разбор" %} ›</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+    <p class="text-dim">{% trans "Ты ещё не проходил этот тест." %}</p>
+  {% endif %}
+
+  <nav class="lesson-nav">
+    <a class="btn-login btn-login--ghost" href="{% url 'lesson_view' lesson.pk %}">← {% trans "К тесту" %}</a>
+    <span></span>
+  </nav>
+
+</div>
+</main>
+
+</body>
+</html>

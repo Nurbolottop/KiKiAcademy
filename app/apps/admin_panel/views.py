@@ -30,6 +30,7 @@ from apps.lms.models import (
     LessonBlock,
     LessonProgress,
     Question,
+    QuizAttempt,
     Role,
     Topic,
     UserProfile,
@@ -144,6 +145,12 @@ def employee_detail_view(request, pk: int):
     quiz_results = []
     for p in quiz_progress:
         total = p.lesson.questions.count()
+        last_attempt = (
+            QuizAttempt.objects
+            .filter(user=profile.user, lesson=p.lesson)
+            .order_by('-created_at')
+            .first()
+        )
         quiz_results.append({
             'course': p.lesson.topic.course.title,
             'topic': p.lesson.topic.title,
@@ -155,6 +162,7 @@ def employee_detail_view(request, pk: int):
             'correct': round(p.score_pct * total / 100) if total else 0,
             'total': total,
             'updated_at': p.updated_at,
+            'attempt_id': last_attempt.id if last_attempt else None,
         })
 
     context = {
