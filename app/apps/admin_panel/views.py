@@ -28,6 +28,7 @@ from apps.lms.models import (
     Enrollment,
     Lesson,
     LessonBlock,
+    LessonProgress,
     Question,
     Role,
     Topic,
@@ -133,9 +134,33 @@ def employee_detail_view(request, pk: int):
     available_roles = Role.objects.exclude(code=Role.Code.FOUNDER).order_by('title')
     active_role_ids = set(profile.roles.values_list('id', flat=True))
 
+    # Результаты тестов сотрудника (по урокам типа QUIZ, которые он проходил)
+    quiz_progress = (
+        LessonProgress.objects
+        .filter(enrollment__user=profile.user, lesson__kind=Lesson.Kind.QUIZ, attempts__gt=0)
+        .select_related('lesson', 'lesson__topic', 'lesson__topic__course')
+        .order_by('lesson__topic__course__order', 'lesson__topic__order', 'lesson__order')
+    )
+    quiz_results = []
+    for p in quiz_progress:
+        total = p.lesson.questions.count()
+        quiz_results.append({
+            'course': p.lesson.topic.course.title,
+            'topic': p.lesson.topic.title,
+            'lesson': p.lesson.title,
+            'score_pct': p.score_pct,
+            'threshold': p.lesson.pass_threshold,
+            'attempts': p.attempts,
+            'passed': p.score_pct >= p.lesson.pass_threshold,
+            'correct': round(p.score_pct * total / 100) if total else 0,
+            'total': total,
+            'updated_at': p.updated_at,
+        })
+
     context = {
         'profile': profile,
         'enrollments': enrollments,
+        'quiz_results': quiz_results,
         'is_founder': _is_founder_profile(profile),
         'available_roles': available_roles,
         'active_role_ids': active_role_ids,

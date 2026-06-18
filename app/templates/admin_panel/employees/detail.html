@@ -135,4 +135,45 @@
   {% endif %}
 </section>
 
+<section class="section">
+  <h2 class="section__title">{% trans "Результаты тестов" %}</h2>
+  {% if quiz_results %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{% trans "Этап" %}</th>
+          <th>{% trans "Тест" %}</th>
+          <th>{% trans "Результат" %}</th>
+          <th>{% trans "Попытки" %}</th>
+          <th>{% trans "Статус" %}</th>
+          <th>{% trans "Дата" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in quiz_results %}
+        <tr>
+          <td>{{ r.topic }}</td>
+          <td>{{ r.lesson }}</td>
+          <td><b>{{ r.score_pct }}%</b> <span class="text-dim">({{ r.correct }}/{{ r.total }})</span></td>
+          <td>{{ r.attempts }}</td>
+          <td>
+            {% if r.passed %}
+              <span class="status status--active">✓ {% trans "Сдан" %}</span>
+            {% else %}
+              <span class="status status--blocked">✗ {% trans "Не сдан" %}</span>
+            {% endif %}
+            <span class="text-dim">· {% trans "порог" %} {{ r.threshold }}%</span>
+          </td>
+          <td>{{ r.updated_at|date:"d.m.Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-dim">{% trans "Сотрудник ещё не проходил тесты." %}</p>
+  {% endif %}
+</section>
+
 {% endblock %}
