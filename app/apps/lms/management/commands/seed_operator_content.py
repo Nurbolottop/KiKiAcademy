@@ -6,9 +6,11 @@
 
     python manage.py seed_operator_content
 """
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from apps.lms.commons_images import fetch_commons_image
 from apps.lms.models import Answer, Course, Lesson, LessonBlock, Question, Topic
 
 COURSE_TITLE = 'Обучение оператора'
@@ -91,7 +93,7 @@ STAGE1 = {
                    'Не оставляет заявки без ответа')),
             t(ok('Простыми словами: оператор <strong>превращает обращение в заказ</strong> и '
                  'следит, чтобы клиент остался доволен и вернулся снова.')),
-            ('image', 'Фото/схема: рабочее место оператора и каналы заявок'),
+            ('image', 'Рабочее место оператора', 'call center operator headset customer service'),
             ('video', (EXAMPLE_VIDEO, 'Видео: как проходит рабочий день оператора (загрузите позже)')),
         ]),
         ('Стандарты компании', [
@@ -118,7 +120,7 @@ STAGE1 = {
                    'Контакты руководителя для сложных вопросов')),
             t(note('Стандарты и актуальные данные компании — в Базе знаний. Если что-то изменилось '
                    '(цены, услуги, правила) — сначала свериться там.')),
-            ('image', 'Фото: команда / офис Cleaning KIKI (загрузите позже)'),
+            ('image', 'Команда в офисе', 'business office team meeting'),
         ]),
         ('Ответственность', [
             t('<h3>⚖️ За что отвечает оператор</h3>'
@@ -521,9 +523,15 @@ STAGES = {
 
 class Command(BaseCommand):
     help = 'Наполняет курс «Обучение оператора» — этапы 1, 2, 4 (контент + тесты).'
+    _img_seq = 0
+
+    def add_arguments(self, parser):
+        parser.add_argument('--no-images', action='store_true',
+                            help='Не скачивать фото, только текст/подписи.')
 
     @transaction.atomic
     def handle(self, *args, **options):
+        no_images = options['no_images']
         course = Course.objects.filter(title=COURSE_TITLE).first()
         if not course:
             self.stdout.write(self.style.WARNING(
@@ -534,7 +542,7 @@ class Command(BaseCommand):
         cleaner_topic = Topic.objects.filter(
             course__title=CLEANER_COURSE_TITLE, title=CLEANER_TOPIC_TITLE).first()
 
-        blocks_n = q_n = copied_n = 0
+        blocks_n = q_n = copied_n = img_ok = img_fail = 0
         for topic_title, data in STAGES.items():
             topic = Topic.objects.filter(course=course, title=topic_title).first()
             if not topic:
@@ -550,17 +558,34 @@ class Command(BaseCommand):
                 lesson.save(update_fields=['order'])
                 lesson.blocks.all().delete()
                 b_order = 0
-                for b_order, (kind, payload) in enumerate(blocks, start=1):
+                for b_order, item in enumerate(blocks, start=1):
+                    kind = item[0]
                     if kind == 'image':
-                        LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.IMAGE,
-                                                   order=b_order, caption=payload)
+                        caption = item[1]
+                        query = item[2] if len(item) > 2 else None
+                        block = LessonBlock.objects.create(
+                            lesson=lesson, kind=LessonBlock.Kind.IMAGE,
+                            order=b_order, caption=caption)
+                        if query and not no_images:
+                            img, _src = fetch_commons_image(query)
+                            if img:
+                                self._img_seq += 1
+                                block.caption = f'{caption} · фото: Wikimedia Commons'
+                                block.image.save(f'operator-{self._img_seq}.jpg',
+                                                 ContentFile(img), save=True)
+                                img_ok += 1
+                                self.stdout.write(f'      🖼  {caption}: фото загружено')
+                            else:
+                                img_fail += 1
+                                self.stdout.write(self.style.WARNING(
+                                    f'      ! {caption}: фото не найдено'))
                     elif kind == 'video':
-                        url, caption = payload
+                        url, caption = item[1]
                         LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.VIDEO,
                                                    order=b_order, video_url=url, caption=caption)
                     else:
                         LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.TEXT,
-                                                   order=b_order, text=payload)
+                                                   order=b_order, text=item[1])
                     blocks_n += 1
 
                 # Подтягиваем подробный контент услуги из курса клинера.
@@ -602,6 +627,6 @@ class Command(BaseCommand):
             self.stdout.write(f'  ✓ {topic_title}')
 
         self.stdout.write(self.style.SUCCESS(
-            f'Готово. Блоков: {blocks_n} (из них скопировано из клинера: {copied_n}), '
-            f'вопросов в тестах: {q_n}.'
+            f'Готово. Блоков: {blocks_n} (из клинера: {copied_n}), '
+            f'фото: {img_ok} загружено / {img_fail} не найдено, вопросов: {q_n}.'
         ))

@@ -6,9 +6,11 @@
 
     python manage.py seed_manager_content
 """
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from apps.lms.commons_images import fetch_commons_image
 from apps.lms.models import Answer, Course, Lesson, LessonBlock, Question, Topic
 
 COURSE_TITLE = 'Обучение менеджера'
@@ -81,7 +83,7 @@ STAGE1 = {
                    'Менеджер — лицо компании перед клиентом на объекте')),
             t(ok('Простыми словами: менеджер отвечает за то, чтобы <strong>объект был сдан '
                  'качественно, вовремя и клиент был доволен</strong>.')),
-            ('image', 'Фото/схема: менеджер на объекте с бригадой (загрузите позже)'),
+            ('image', 'Менеджер и бригада на объекте', 'cleaning staff team uniform'),
         ]),
         ('Стандарты компании', [
             t('<h3>🏢 О компании</h3>'
@@ -150,7 +152,7 @@ STAGE1 = {
                    'Проводить финальную проверку перед уходом с объекта')),
             t(note('Подробно контроль качества разбирается в ЭТАПе 4. Здесь важно понять принцип: '
                    'менеджер отвечает за итоговое качество объекта.')),
-            ('image', 'Пример: фото до/после и чек-лист приёмки (загрузите позже)'),
+            ('image', 'Проверка качества уборки', 'professional home cleaning service'),
         ]),
     ],
     'quiz': [
@@ -259,7 +261,7 @@ STAGE6 = {
                    'Заложить время на финальную проверку и переделки')),
             t(warn('На сложном объекте нельзя пускать работу на самотёк. Чем сложнее объект — тем '
                    'плотнее контроль менеджера.')),
-            ('image', 'Фото: сложный объект до/после (загрузите позже)'),
+            ('image', 'Сложный объект — уборка', 'messy room apartment cleaning'),
         ]),
     ],
     'quiz': [
@@ -299,9 +301,15 @@ STAGES = {
 
 class Command(BaseCommand):
     help = 'Наполняет курс «Обучение менеджера» — этапы 1 и 6 (контент + тесты).'
+    _img_seq = 0
+
+    def add_arguments(self, parser):
+        parser.add_argument('--no-images', action='store_true',
+                            help='Не скачивать фото, только текст/подписи.')
 
     @transaction.atomic
     def handle(self, *args, **options):
+        no_images = options['no_images']
         course = Course.objects.filter(title=COURSE_TITLE).first()
         if not course:
             self.stdout.write(self.style.WARNING(
@@ -311,7 +319,7 @@ class Command(BaseCommand):
         cleaner_topic = Topic.objects.filter(
             course__title=CLEANER_COURSE_TITLE, title=CLEANER_TOPIC_TITLE).first()
 
-        blocks_n = q_n = copied_n = 0
+        blocks_n = q_n = copied_n = img_ok = img_fail = 0
         for topic_title, data in STAGES.items():
             topic = Topic.objects.filter(course=course, title=topic_title).first()
             if not topic:
@@ -327,17 +335,34 @@ class Command(BaseCommand):
                 lesson.save(update_fields=['order'])
                 lesson.blocks.all().delete()
                 b_order = 0
-                for b_order, (kind, payload) in enumerate(blocks, start=1):
+                for b_order, item in enumerate(blocks, start=1):
+                    kind = item[0]
                     if kind == 'image':
-                        LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.IMAGE,
-                                                   order=b_order, caption=payload)
+                        caption = item[1]
+                        query = item[2] if len(item) > 2 else None
+                        block = LessonBlock.objects.create(
+                            lesson=lesson, kind=LessonBlock.Kind.IMAGE,
+                            order=b_order, caption=caption)
+                        if query and not no_images:
+                            img, _src = fetch_commons_image(query)
+                            if img:
+                                self._img_seq += 1
+                                block.caption = f'{caption} · фото: Wikimedia Commons'
+                                block.image.save(f'manager-{self._img_seq}.jpg',
+                                                 ContentFile(img), save=True)
+                                img_ok += 1
+                                self.stdout.write(f'      🖼  {caption}: фото загружено')
+                            else:
+                                img_fail += 1
+                                self.stdout.write(self.style.WARNING(
+                                    f'      ! {caption}: фото не найдено'))
                     elif kind == 'video':
-                        url, caption = payload
+                        url, caption = item[1]
                         LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.VIDEO,
                                                    order=b_order, video_url=url, caption=caption)
                     else:
                         LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.TEXT,
-                                                   order=b_order, text=payload)
+                                                   order=b_order, text=item[1])
                     blocks_n += 1
 
                 # Подробный контент услуги из курса клинера
@@ -377,5 +402,6 @@ class Command(BaseCommand):
             self.stdout.write(f'  ✓ {topic_title}')
 
         self.stdout.write(self.style.SUCCESS(
-            f'Готово. Блоков: {blocks_n} (из них из клинера: {copied_n}), вопросов: {q_n}.'
+            f'Готово. Блоков: {blocks_n} (из клинера: {copied_n}), '
+            f'фото: {img_ok} загружено / {img_fail} не найдено, вопросов: {q_n}.'
         ))
