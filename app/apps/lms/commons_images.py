@@ -24,6 +24,7 @@ def _get(url, timeout=60, retries=4):
 
 def fetch_commons_image(query, timeout=60):
     """Возвращает (bytes, source_url) первого подходящего фото или (None, None)."""
+    time.sleep(1.2)  # троттлинг против rate-limit Wikimedia
     params = urllib.parse.urlencode({
         'action': 'query', 'generator': 'search',
         'gsrsearch': f'filetype:bitmap {query}',
