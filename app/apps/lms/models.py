@@ -10,6 +10,7 @@ class Role(models.Model):
         MANAGER = 'MANAGER', 'Manager'
         OPERATOR = 'OPERATOR', 'Operator'
         HR = 'HR', 'HR'
+        SMM = 'SMM', 'SMM / Мобилограф'
         FOUNDER = 'FOUNDER', 'Founder'
 
     code = models.CharField(max_length=32, unique=True, choices=Code.choices, verbose_name='Код')
