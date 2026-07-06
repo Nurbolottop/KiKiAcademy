@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lms', '0014_quizattempt'),
+        ('lms', '0015_rename_lms_quizatt_user_id_3d6f1a_idx_lms_quizatt_user_id_7c116d_idx'),
     ]
 
     operations = [
