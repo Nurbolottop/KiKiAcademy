@@ -531,7 +531,14 @@ class Command(BaseCommand):
                 continue
             lesson.order = order
             lesson.save(update_fields=['order'])
+            # НЕ теряем загруженные вручную фото: сохраняем их и вернём в конец урока.
+            saved_imgs = [
+                (b.caption, b.image.name)
+                for b in lesson.blocks.filter(kind=LessonBlock.Kind.IMAGE)
+                if b.image and b.image.name
+            ]
             lesson.blocks.all().delete()
+            b_order = 0
             for b_order, (kind, payload) in enumerate(items, start=1):
                 if kind == 'text':
                     LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.TEXT,
@@ -544,7 +551,15 @@ class Command(BaseCommand):
                     LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.VIDEO,
                                                order=b_order, video_url=url, caption=caption)
                 blocks_n += 1
-            self.stdout.write(f'  ✓ {title} ({len(items)} блоков)')
+            # Возвращаем ранее загруженные фото (чтобы повторный сид их не стирал).
+            for cap, name in saved_imgs:
+                b_order += 1
+                blk = LessonBlock(lesson=lesson, kind=LessonBlock.Kind.IMAGE,
+                                  order=b_order, caption=cap or 'Фото')
+                blk.image.name = name
+                blk.save()
+                blocks_n += 1
+            self.stdout.write(f'  ✓ {title} ({len(items)} блоков, сохранено фото: {len(saved_imgs)})')
 
         quiz = Lesson.objects.filter(topic=topic, title='Тест', kind=Lesson.Kind.QUIZ).first()
         q_n = 0
