@@ -48,17 +48,17 @@
       {% if mode == 'create' %}{% trans "Создать" %}{% else %}{% trans "Сохранить" %}{% endif %}
     </button>
     <a class="btn btn--ghost" href="{% if course %}{% url 'admin_panel:course_detail' course.pk %}{% else %}{% url 'admin_panel:courses' %}{% endif %}">{% trans "Отмена" %}</a>
-
-    {% if mode == 'edit' %}
-    <form method="post" action="{% url 'admin_panel:course_delete' course.pk %}"
-          data-ajax data-confirm="{% trans 'Удалить курс со всеми темами и уроками?' %}"
-          data-confirm-title="{% trans 'Удалить курс' %}" data-confirm-button="{% trans 'Удалить' %}"
-          style="margin-left:auto;display:inline-block;">
-      {% csrf_token %}
-      <button type="submit" class="btn btn--danger-outline">{% trans "Удалить курс" %}</button>
-    </form>
-    {% endif %}
   </div>
 </form>
+
+{% if mode == 'edit' %}
+<form method="post" action="{% url 'admin_panel:course_delete' course.pk %}"
+      data-ajax data-confirm="{% trans 'Удалить курс со всеми темами и уроками? Это действие нельзя отменить.' %}"
+      data-confirm-title="{% trans 'Удалить курс' %}" data-confirm-button="{% trans 'Удалить' %}"
+      data-confirm-type="danger" style="margin-top:20px;">
+  {% csrf_token %}
+  <button type="submit" class="btn btn--danger-outline">{% trans "Удалить курс" %}</button>
+</form>
+{% endif %}
 
 {% endblock %}
