@@ -384,7 +384,14 @@ class Command(BaseCommand):
             if not lesson:
                 self.stdout.write(self.style.WARNING(f'  Урок не найден: {title}'))
                 continue
+            # Сохраняем загруженные вручную фото, чтобы пересид их не стирал.
+            saved_imgs = [
+                (b.caption, b.image.name)
+                for b in lesson.blocks.filter(kind=LessonBlock.Kind.IMAGE)
+                if b.image and b.image.name
+            ]
             lesson.blocks.all().delete()
+            order = 0
             for order, (kind, payload) in enumerate(items, start=1):
                 if kind == 'text':
                     LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.TEXT,
@@ -397,7 +404,15 @@ class Command(BaseCommand):
                     LessonBlock.objects.create(lesson=lesson, kind=LessonBlock.Kind.VIDEO,
                                                order=order, video_url=url, caption=caption)
                 blocks_n += 1
-            self.stdout.write(f'  ✓ {title} ({len(items)} блоков)')
+            # Возвращаем ранее загруженные фото в конец урока.
+            for cap, name in saved_imgs:
+                order += 1
+                blk = LessonBlock(lesson=lesson, kind=LessonBlock.Kind.IMAGE,
+                                  order=order, caption=cap or 'Фото')
+                blk.image.name = name
+                blk.save()
+                blocks_n += 1
+            self.stdout.write(f'  ✓ {title} ({len(items)} блоков, сохранено фото: {len(saved_imgs)})')
 
         quiz = Lesson.objects.filter(topic=topic, title='Тест', kind=Lesson.Kind.QUIZ).first()
         q_n = 0
