@@ -1,0 +1,36 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Результаты" %}{% endblock %}
+{% block heading %}{% trans "Результаты" %}{% endblock %}
+
+{% block content %}
+
+{% if items %}
+<p class="text-dim" style="margin-bottom:16px;">{% trans "Выберите курс, чтобы посмотреть, кто прошёл тесты и с каким результатом." %}</p>
+<div class="course-grid">
+  {% for it in items %}
+  <div class="course-card" data-id="{{ it.course.id }}" data-href="{% url 'admin_panel:course_results' it.course.id %}">
+    <div class="course-card__icon">{{ it.course.icon|default:"📚" }}</div>
+    <div class="course-card__body">
+      <h3 class="course-card__title">{{ it.course.title }}</h3>
+      <div class="course-card__meta">
+        <span class="course-card__count">{{ it.n_tests }} {% trans "тестов" %}</span>
+        <span class="tag">{{ it.n_enrolled }} {% trans "сотрудников" %}</span>
+        {% if it.n_completed %}
+          <span class="status status--active">✓ {{ it.n_completed }} {% trans "завершили" %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="placeholder">
+  <div class="placeholder__icon">🏆</div>
+  <h2 class="placeholder__title">{% trans "Курсов пока нет" %}</h2>
+  <p class="placeholder__text">{% trans "Создайте курс и назначьте роли — здесь появятся результаты тестов." %}</p>
+</div>
+{% endif %}
+
+{% endblock %}

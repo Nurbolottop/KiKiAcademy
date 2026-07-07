@@ -23,6 +23,7 @@
       {% url 'admin_panel:dashboard' as u_dashboard %}
       {% url 'admin_panel:employees' as u_employees %}
       {% url 'admin_panel:courses' as u_courses %}
+      {% url 'admin_panel:results' as u_results %}
       {% url 'admin_panel:programs' as u_programs %}
       {% url 'admin_panel:settings' as u_settings %}
 
@@ -37,6 +38,10 @@
       <a class="sidebar__link {% if u_courses in request.path %}is-active{% endif %}" href="{{ u_courses }}">
         <span class="sidebar__icon">📚</span>
         <span>{% trans "Курсы" %}</span>
+      </a>
+      <a class="sidebar__link {% if u_results in request.path %}is-active{% endif %}" href="{{ u_results }}">
+        <span class="sidebar__icon">🏆</span>
+        <span>{% trans "Результаты" %}</span>
       </a>
       <a class="sidebar__link {% if u_programs in request.path %}is-active{% endif %}" href="{{ u_programs }}">
         <span class="sidebar__icon">🎯</span>

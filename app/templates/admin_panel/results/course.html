@@ -1,0 +1,66 @@
+{% extends 'admin_panel/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Результаты" %}: {{ course.title }}{% endblock %}
+{% block heading %}{{ course.icon|default:"📚" }} {{ course.title }}{% endblock %}
+
+{% block header_actions %}
+  <a class="btn btn--secondary" href="{% url 'admin_panel:results' %}">← {% trans "Все курсы" %}</a>
+{% endblock %}
+
+{% block content %}
+
+{% if not tests %}
+  <p class="text-dim">{% trans "В этом курсе пока нет тестов." %}</p>
+{% elif not rows %}
+  <p class="text-dim">{% trans "На курс пока никто не назначен." %}</p>
+{% else %}
+<p class="text-dim" style="margin-bottom:16px;">
+  {% trans "Балл — последний результат теста. Зелёный — сдан, красный — не сдан (относительно проходного балла)." %}
+</p>
+<div class="table-wrap" style="overflow-x:auto;">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{% trans "Сотрудник" %}</th>
+        <th>{% trans "Роль" %}</th>
+        {% for t in tests %}
+          <th style="white-space:nowrap;">{{ t.topic.title }}</th>
+        {% endfor %}
+        <th>{% trans "Сдано" %}</th>
+        <th>{% trans "Курс" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td style="white-space:nowrap;"><b>{{ r.user.first_name }} {{ r.user.last_name }}</b><br><span class="text-dim">{{ r.user.phone }}</span></td>
+        <td>{% if r.role %}<span class="tag">{{ r.role.title }}</span>{% else %}—{% endif %}</td>
+        {% for c in r.cells %}
+        <td style="text-align:center;">
+          {% if c.has %}
+            <span class="status status--{% if c.passed %}active{% else %}blocked{% endif %}">{{ c.score }}%</span>
+            <div class="text-dim" style="font-size:.78rem;margin-top:2px;">
+              {% if c.passed %}✓ {% trans "сдал" %}{% else %}✗ {% trans "не сдал" %}{% endif %} · {{ c.attempts }}&nbsp;{% trans "поп." %}
+            </div>
+          {% else %}
+            <span class="text-dim">—</span>
+          {% endif %}
+        </td>
+        {% endfor %}
+        <td style="text-align:center;"><b>{{ r.passed_count }}/{{ r.total }}</b></td>
+        <td style="white-space:nowrap;">
+          {% if r.completed_at %}
+            <span class="status status--active">✓ {{ r.completed_at|date:"d.m.Y" }}</span>
+          {% else %}
+            <span class="text-dim">{% trans "в процессе" %}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -373,6 +373,78 @@ def courses_view(request):
     return render(request, 'admin_panel/courses/list.html', {'courses': courses})
 
 
+# ─── RESULTS (результаты тестов по курсам) ──────────────────────────
+
+@founder_required
+def results_view(request):
+    """Список курсов с краткой статистикой прохождения тестов."""
+    courses = Course.objects.prefetch_related('course_roles__role').order_by('order', 'id')
+    items = []
+    for c in courses:
+        n_tests = Lesson.objects.filter(topic__course=c, kind=Lesson.Kind.QUIZ).count()
+        n_enrolled = Enrollment.objects.filter(course=c).count()
+        n_completed = Enrollment.objects.filter(course=c, completed_at__isnull=False).count()
+        items.append({
+            'course': c,
+            'n_tests': n_tests,
+            'n_enrolled': n_enrolled,
+            'n_completed': n_completed,
+        })
+    return render(request, 'admin_panel/results/list.html', {'items': items})
+
+
+@founder_required
+def course_results_view(request, pk: int):
+    """Матрица: сотрудники × тесты курса (балл, сдал/не сдал)."""
+    course = get_object_or_404(Course, pk=pk)
+    tests = list(
+        Lesson.objects
+        .filter(topic__course=course, kind=Lesson.Kind.QUIZ)
+        .select_related('topic')
+        .order_by('topic__order', 'order')
+    )
+    enrollments = (
+        Enrollment.objects
+        .filter(course=course)
+        .select_related('user', 'assigned_role')
+        .order_by('user__first_name', 'user__last_name')
+    )
+    progresses = LessonProgress.objects.filter(
+        enrollment__course=course, lesson__kind=Lesson.Kind.QUIZ, attempts__gt=0,
+    ).select_related('enrollment')
+    pmap = {(p.enrollment_id, p.lesson_id): p for p in progresses}
+
+    rows = []
+    for e in enrollments:
+        cells = []
+        passed_count = 0
+        for t in tests:
+            p = pmap.get((e.id, t.id))
+            if p:
+                passed = p.score_pct >= t.pass_threshold
+                if passed:
+                    passed_count += 1
+                cells.append({'has': True, 'score': p.score_pct,
+                              'passed': passed, 'attempts': p.attempts,
+                              'threshold': t.pass_threshold})
+            else:
+                cells.append({'has': False})
+        rows.append({
+            'user': e.user,
+            'role': e.assigned_role,
+            'cells': cells,
+            'passed_count': passed_count,
+            'total': len(tests),
+            'completed_at': e.completed_at,
+        })
+
+    return render(request, 'admin_panel/results/course.html', {
+        'course': course,
+        'tests': tests,
+        'rows': rows,
+    })
+
+
 @founder_required
 def course_create_view(request):
     if request.method == 'POST':

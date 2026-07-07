@@ -66,6 +66,9 @@ urlpatterns = [
     path('courses/<int:course_pk>/topics/<int:topic_pk>/lessons/<int:lesson_pk>/questions/<int:question_pk>/answers/<int:pk>/delete/',
          views.answer_delete_view, name='answer_delete'),
 
+    path('results/', views.results_view, name='results'),
+    path('results/<int:pk>/', views.course_results_view, name='course_results'),
+
     path('programs/', views.programs_view, name='programs'),
     path('settings/', views.settings_view, name='settings'),
 ]
