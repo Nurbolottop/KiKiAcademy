@@ -29,9 +29,12 @@ def video_iframe(url: str):
     embed = video_embed_url(url)
     if not embed:
         return ''
+    # referrerpolicy — чтобы на YouTube уходил домен сайта (иначе Referrer-Policy
+    # сайта = same-origin режет referrer и плеер выдаёт «Ошибку 153»).
     html = (
         f'<div class="video-embed">'
         f'<iframe src="{embed}" frameborder="0" allowfullscreen '
+        f'referrerpolicy="strict-origin-when-cross-origin" '
         f'allow="autoplay; encrypted-media; picture-in-picture"></iframe>'
         f'</div>'
     )
