@@ -580,6 +580,12 @@ def ptable(headers, rows):
             f'<thead><tr>{th}</tr></thead><tbody>{body}</tbody></table>')
 
 
+def pre(text):
+    return ('<pre style="background:rgba(128,128,128,.12);border-radius:10px;padding:14px 16px;'
+            'overflow-x:auto;font-size:.9rem;line-height:1.5;white-space:pre-wrap;'
+            'font-family:ui-monospace,Menlo,Consolas,monospace;margin:12px 0;">' + text + '</pre>')
+
+
 # ─────────────────────────────────────────────────────────────────
 # ЭТАП 3 — Продажи
 # ─────────────────────────────────────────────────────────────────
