@@ -49,7 +49,51 @@
 
 </div>
 
-{% if not is_founder %}
+{% if not is_self %}
+<section class="section">
+  <h2 class="section__title">{% trans "Права доступа" %}</h2>
+  <div class="actions-row">
+    <div class="access-badges">
+      {% if is_founder %}<span class="badge badge--info">{% trans "Администратор" %}</span>{% endif %}
+      {% if is_super %}<span class="badge badge--info">{% trans "Суперпользователь" %}</span>{% endif %}
+      {% if not is_founder and not is_super %}<span class="text-dim">{% trans "Обычный сотрудник" %}</span>{% endif %}
+    </div>
+
+    <form method="post" action="{% url 'admin_panel:employee_toggle_admin' profile.pk %}"
+          data-ajax
+          data-confirm="{% if is_founder %}{% trans 'Снять права администратора? Пользователь потеряет доступ к панели управления.' %}{% else %}{% trans 'Назначить администратором? Пользователь получит полный доступ к этой панели управления.' %}{% endif %}"
+          data-confirm-title="{% trans 'Права администратора' %}"
+          data-confirm-button="{% if is_founder %}{% trans 'Снять' %}{% else %}{% trans 'Назначить' %}{% endif %}"
+          data-confirm-type="{% if is_founder %}warning{% else %}success{% endif %}">
+      {% csrf_token %}
+      {% if is_founder %}
+        <button class="btn btn--warning" type="submit">{% trans "Снять администратора" %}</button>
+      {% else %}
+        <button class="btn btn--primary" type="submit">{% trans "Сделать администратором" %}</button>
+      {% endif %}
+    </form>
+
+    {% if can_grant_super %}
+    <form method="post" action="{% url 'admin_panel:employee_toggle_superuser' profile.pk %}"
+          data-ajax
+          data-confirm="{% if is_super %}{% trans 'Снять права суперпользователя?' %}{% else %}{% trans 'Назначить суперпользователем? Он получит полный доступ ко всей системе, включая Django-админку.' %}{% endif %}"
+          data-confirm-title="{% trans 'Права суперпользователя' %}"
+          data-confirm-button="{% if is_super %}{% trans 'Снять' %}{% else %}{% trans 'Назначить' %}{% endif %}"
+          data-confirm-type="{% if is_super %}warning{% else %}danger{% endif %}">
+      {% csrf_token %}
+      {% if is_super %}
+        <button class="btn btn--warning" type="submit">{% trans "Снять суперпользователя" %}</button>
+      {% else %}
+        <button class="btn btn--danger-outline" type="submit">{% trans "Сделать суперпользователем" %}</button>
+      {% endif %}
+    </form>
+    {% endif %}
+  </div>
+  <p class="form__help">{% trans "Администратор — доступ к этой панели управления. Суперпользователь — полный доступ ко всей системе (включая Django-админку)." %}</p>
+</section>
+{% endif %}
+
+{% if not is_founder and not is_self %}
 <section class="section">
   <h2 class="section__title">{% trans "Действия" %}</h2>
   <div class="actions-row">

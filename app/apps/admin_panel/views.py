@@ -64,7 +64,7 @@ def _filtered_employees_qs(request):
         UserProfile.objects
         .select_related('user')
         .prefetch_related('roles')
-        .exclude(roles__code=Role.Code.FOUNDER)
+        .exclude(user=request.user)  # не показываем самого себя (защита от самоблокировки)
         .order_by('-hired_at')
         .distinct()
     )
@@ -170,6 +170,9 @@ def employee_detail_view(request, pk: int):
         'enrollments': enrollments,
         'quiz_results': quiz_results,
         'is_founder': _is_founder_profile(profile),
+        'is_self': profile.user_id == request.user.id,
+        'is_super': profile.user.is_superuser,
+        'can_grant_super': request.user.is_superuser,
         'available_roles': available_roles,
         'active_role_ids': active_role_ids,
     }
@@ -322,6 +325,59 @@ def employee_delete_view(request, pk: int):
         return ajax_ok(f'Сотрудник {user_str} удалён', redirect_url='/staff/employees/')
     messages.success(request, f'Сотрудник {user_str} удалён')
     return redirect('admin_panel:employees')
+
+
+def _access_result(request, pk: int, ok: bool, msg: str):
+    if is_ajax(request):
+        return ajax_ok(msg) if ok else ajax_error(msg)
+    (messages.success if ok else messages.error)(request, msg)
+    return redirect('admin_panel:employee_detail', pk=pk)
+
+
+@founder_required
+@require_POST
+def employee_toggle_admin_view(request, pk: int):
+    """Выдаёт/снимает роль FOUNDER — доступ в панель управления /staff/."""
+    profile = get_object_or_404(UserProfile.objects.select_related('user'), pk=pk)
+    if profile.user_id == request.user.id:
+        return _access_result(request, pk, False, 'Нельзя изменить собственный доступ')
+
+    founder_role, _ = Role.objects.get_or_create(
+        code=Role.Code.FOUNDER,
+        defaults={'title': 'Основатель', 'is_learning_participant': False},
+    )
+    if _is_founder_profile(profile):
+        profile.roles.remove(founder_role)
+        msg = 'Права администратора сняты'
+    else:
+        profile.roles.add(founder_role)
+        msg = 'Пользователь назначен администратором'
+    return _access_result(request, pk, True, msg)
+
+
+@founder_required
+@require_POST
+def employee_toggle_superuser_view(request, pk: int):
+    """Выдаёт/снимает права суперпользователя (is_superuser + is_staff)."""
+    profile = get_object_or_404(UserProfile.objects.select_related('user'), pk=pk)
+    if not request.user.is_superuser:
+        return _access_result(
+            request, pk, False,
+            'Управлять правами суперпользователя может только суперпользователь')
+    if profile.user_id == request.user.id:
+        return _access_result(request, pk, False, 'Нельзя изменить собственный доступ')
+
+    user = profile.user
+    if user.is_superuser:
+        user.is_superuser = False
+        user.is_staff = False
+        msg = 'Права суперпользователя сняты'
+    else:
+        user.is_superuser = True
+        user.is_staff = True
+        msg = 'Пользователь назначен суперпользователем'
+    user.save(update_fields=['is_superuser', 'is_staff'])
+    return _access_result(request, pk, True, msg)
 
 
 @founder_required
