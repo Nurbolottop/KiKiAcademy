@@ -54,7 +54,9 @@ class UserProfile(models.Model):
 
 class Course(models.Model):
     title = models.CharField(max_length=200, verbose_name='Название')
+    title_ky = models.CharField(max_length=200, blank=True, verbose_name='Название (кыргызча)')
     description = models.TextField(blank=True, verbose_name='Описание')
+    description_ky = models.TextField(blank=True, verbose_name='Описание (кыргызча)')
     icon = models.CharField(max_length=8, blank=True, default='📚', verbose_name='Иконка')
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,6 +73,7 @@ class Course(models.Model):
 class Topic(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='topics', verbose_name='Курс')
     title = models.CharField(max_length=200, verbose_name='Название')
+    title_ky = models.CharField(max_length=200, blank=True, verbose_name='Название (кыргызча)')
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
     # Доступ по ролям на уровне темы. Пусто = тема видна всем ролям курса.
     roles = models.ManyToManyField(Role, blank=True, related_name='topics', verbose_name='Доступно ролям')
@@ -91,9 +94,11 @@ class Lesson(models.Model):
 
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='lessons', verbose_name='Тема')
     title = models.CharField(max_length=200, verbose_name='Название')
+    title_ky = models.CharField(max_length=200, blank=True, verbose_name='Название (кыргызча)')
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
     kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.CONTENT, verbose_name='Тип')
     description = models.TextField(blank=True, verbose_name='Описание / введение')
+    description_ky = models.TextField(blank=True, verbose_name='Описание / введение (кыргызча)')
     is_published = models.BooleanField(default=True, verbose_name='Опубликован')
     # Проходной балл теста (%). Используется только для уроков типа QUIZ.
     pass_threshold = models.PositiveIntegerField(
@@ -123,11 +128,13 @@ class LessonBlock(models.Model):
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
 
     text = models.TextField(blank=True, verbose_name='Текст')
+    text_ky = models.TextField(blank=True, verbose_name='Текст (кыргызча)')
     image = ResizedImageField(
         force_format='WEBP', quality=82, size=[1600, 1600], keep_meta=False,
         upload_to='lessons/images/', blank=True, null=True, verbose_name='Изображение',
     )
     caption = models.CharField(max_length=255, blank=True, verbose_name='Подпись')
+    caption_ky = models.CharField(max_length=255, blank=True, verbose_name='Подпись (кыргызча)')
     video_url = models.URLField(blank=True, verbose_name='URL видео (YouTube / Vimeo)')
 
     class Meta:
@@ -143,6 +150,7 @@ class Question(models.Model):
     """Вопрос теста (для уроков типа QUIZ)."""
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='questions', verbose_name='Урок')
     text = models.TextField(verbose_name='Текст вопроса')
+    text_ky = models.TextField(blank=True, verbose_name='Текст вопроса (кыргызча)')
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
 
     class Meta:
@@ -158,6 +166,7 @@ class Answer(models.Model):
     """Вариант ответа на вопрос."""
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers', verbose_name='Вопрос')
     text = models.CharField(max_length=500, verbose_name='Текст ответа')
+    text_ky = models.CharField(max_length=500, blank=True, verbose_name='Текст ответа (кыргызча)')
     is_correct = models.BooleanField(default=False, verbose_name='Правильный')
     order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
 

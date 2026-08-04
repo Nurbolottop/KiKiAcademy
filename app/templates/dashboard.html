@@ -1,4 +1,4 @@
-{% load i18n static %}<!DOCTYPE html>
+{% load i18n static lms_extras %}<!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8" />
@@ -208,7 +208,7 @@
       <div class="acc-item acc-item--{% if cs.total_topics == 0 %}empty{% else %}{{ cs.state }}{% endif %}" data-cat="{{ cs.course.id }}">
         <button class="acc-header" aria-expanded="false" {% if cs.state == 'locked' %}disabled{% endif %}>
           <span class="acc-header__icon">{{ cs.course.icon|default:"📚" }}</span>
-          <span class="acc-header__title">{{ cs.course.title }}</span>
+          <span class="acc-header__title">{{ cs.course|loc:'title' }}</span>
           <span class="acc-header__status acc-header__status--{% if cs.total_topics == 0 %}locked{% else %}{{ cs.state }}{% endif %}">
             {% if cs.total_topics == 0 %}{% trans "Пусто" %}{% elif cs.state == 'done' %}{% trans "Пройдено" %}{% elif cs.state == 'locked' %}{% trans "Закрыто" %}{% else %}{% trans "В процессе" %}{% endif %}
           </span>
@@ -237,7 +237,7 @@
                   <div class="topic-block{% if ts.state == 'current' %} is-open{% endif %}">
                   <div class="tl-item tl-item--{% if ts.state == 'done' %}done{% elif ts.state == 'current' %}current{% else %}locked{% endif %}"
                        id="topic-{{ ts.topic.id }}"
-                       data-name="{{ ts.topic.title }}"
+                       data-name="{{ ts.topic|loc:'title' }}"
                        {% if ts.state != 'locked' and ts.lessons %}data-topic-toggle{% endif %}>
                     <div class="tl-status">
                       {% if ts.state == 'done' %}✔
@@ -245,7 +245,7 @@
                       {% else %}🔒{% endif %}
                     </div>
                     <div class="tl-body">
-                      <div class="tl-title">{{ ts.topic.title }}</div>
+                      <div class="tl-title">{{ ts.topic|loc:'title' }}</div>
                       <div class="tl-desc">{{ ts.completed_lessons }}/{{ ts.total_lessons }} {% trans "уроков" %}</div>
                     </div>
                     {% if ts.state == 'done' and ts.entry_lesson %}
@@ -268,13 +268,13 @@
                       {% if ls.accessible %}
                         <a class="ll-item ll-item--{{ ls.state }}" href="{% url 'lesson_view' ls.lesson.id %}">
                           <span class="ll-icon">{% if ls.state == 'done' %}✔{% else %}▶{% endif %}</span>
-                          <span class="ll-title">{{ ls.lesson.title }}</span>
+                          <span class="ll-title">{{ ls.lesson|loc:'title' }}</span>
                           <span class="ll-kind">{% if ls.lesson.kind == 'QUIZ' %}❓{% else %}📄{% endif %}</span>
                         </a>
                       {% else %}
                         <div class="ll-item ll-item--locked">
                           <span class="ll-icon">🔒</span>
-                          <span class="ll-title">{{ ls.lesson.title }}</span>
+                          <span class="ll-title">{{ ls.lesson|loc:'title' }}</span>
                         </div>
                       {% endif %}
                     {% endfor %}

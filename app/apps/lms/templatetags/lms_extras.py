@@ -2,8 +2,23 @@ import re
 
 from django import template
 from django.utils.safestring import mark_safe
+from django.utils.translation import get_language
 
 register = template.Library()
+
+
+@register.filter(name='loc')
+def loc(obj, field):
+    """Возвращает поле под текущий язык.
+
+    Для kы берёт <field>_ky (если заполнено), иначе откатывается на русский <field>.
+    Пример: {{ lesson|loc:'title' }}, {{ block|loc:'text'|safe }}
+    """
+    base = getattr(obj, field, '') or ''
+    if get_language() == 'ky':
+        ky = getattr(obj, f'{field}_ky', '') or ''
+        return ky or base
+    return base
 
 
 _YT_RE = re.compile(r'(?:youtu\.be/|youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})')

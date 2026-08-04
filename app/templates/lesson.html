@@ -57,14 +57,14 @@
   <div class="lesson-breadcrumb">
     <a href="{% url 'dashboard' %}">{% trans "Курсы" %}</a>
     <span>›</span>
-    <span>{{ course.title }}</span>
+    <span>{{ course|loc:'title' }}</span>
     <span>›</span>
-    <span>{{ topic.title }}</span>
+    <span>{{ topic|loc:'title' }}</span>
   </div>
 
-  <h1 class="lesson-title">{{ lesson.title }}</h1>
+  <h1 class="lesson-title">{{ lesson|loc:'title' }}</h1>
   {% if lesson.description %}
-    <p class="lesson-intro">{{ lesson.description|linebreaksbr }}</p>
+    <p class="lesson-intro">{{ lesson|loc:'description'|linebreaksbr }}</p>
   {% endif %}
 
   {% if is_completed %}
@@ -76,16 +76,16 @@
     <article class="lesson-content">
       {% for b in blocks %}
         {% if b.kind == 'TEXT' %}
-          <div class="lesson-block lesson-block--text">{{ b.text|safe }}</div>
+          <div class="lesson-block lesson-block--text">{{ b|loc:'text'|safe }}</div>
         {% elif b.kind == 'IMAGE' and b.image %}
           <figure class="lesson-block lesson-block--image">
-            <img src="{{ b.image.url }}" alt="{{ b.caption }}">
-            {% if b.caption %}<figcaption>{{ b.caption }}</figcaption>{% endif %}
+            <img src="{{ b.image.url }}" alt="{{ b|loc:'caption' }}">
+            {% if b.caption %}<figcaption>{{ b|loc:'caption' }}</figcaption>{% endif %}
           </figure>
         {% elif b.kind == 'VIDEO' and b.video_url %}
           <div class="lesson-block lesson-block--video">
             {% video_iframe b.video_url %}
-            {% if b.caption %}<div class="lesson-caption">{{ b.caption }}</div>{% endif %}
+            {% if b.caption %}<div class="lesson-caption">{{ b|loc:'caption' }}</div>{% endif %}
           </div>
         {% endif %}
       {% empty %}
@@ -110,13 +110,13 @@
       {% for q in questions %}
         <div class="quiz-question" data-question-id="{{ q.id }}">
           <div class="quiz-question__num">{{ forloop.counter }}</div>
-          <div class="quiz-question__text">{{ q.text }}</div>
+          <div class="quiz-question__text">{{ q|loc:'text' }}</div>
           <ul class="quiz-answers">
             {% for a in q.answers.all %}
             <li class="quiz-answer">
               <label>
                 <input type="checkbox" name="q_{{ q.id }}" value="{{ a.id }}">
-                <span>{{ a.text }}</span>
+                <span>{{ a|loc:'text' }}</span>
               </label>
             </li>
             {% endfor %}
