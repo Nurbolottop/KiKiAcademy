@@ -43,10 +43,6 @@
         <span class="sidebar__icon">🏆</span>
         <span>{% trans "Результаты" %}</span>
       </a>
-      <a class="sidebar__link {% if u_programs in request.path %}is-active{% endif %}" href="{{ u_programs }}">
-        <span class="sidebar__icon">🎯</span>
-        <span>{% trans "Программы обучения" %}</span>
-      </a>
       <a class="sidebar__link {% if u_settings in request.path %}is-active{% endif %}" href="{{ u_settings }}">
         <span class="sidebar__icon">⚙️</span>
         <span>{% trans "Настройки сайта" %}</span>
