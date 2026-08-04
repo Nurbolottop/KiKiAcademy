@@ -171,8 +171,6 @@ def employee_detail_view(request, pk: int):
         'quiz_results': quiz_results,
         'is_founder': _is_founder_profile(profile),
         'is_self': profile.user_id == request.user.id,
-        'is_super': profile.user.is_superuser,
-        'can_grant_super': request.user.is_superuser,
         'available_roles': available_roles,
         'active_role_ids': active_role_ids,
     }
@@ -311,8 +309,8 @@ def employee_reset_password_view(request, pk: int):
 @require_POST
 def employee_delete_view(request, pk: int):
     profile = get_object_or_404(UserProfile.objects.select_related('user'), pk=pk)
-    if _is_founder_profile(profile):
-        msg = 'Нельзя удалить администратора'
+    if profile.user_id == request.user.id:
+        msg = 'Нельзя удалить собственный аккаунт'
         if is_ajax(request):
             return ajax_error(msg)
         messages.error(request, msg)
@@ -357,26 +355,20 @@ def employee_toggle_admin_view(request, pk: int):
 
 @founder_required
 @require_POST
-def employee_toggle_superuser_view(request, pk: int):
-    """Выдаёт/снимает права суперпользователя (is_superuser + is_staff)."""
+def employee_toggle_active_view(request, pk: int):
+    """Отключает/включает аккаунт (is_active) — запрет/разрешение входа на сайт."""
     profile = get_object_or_404(UserProfile.objects.select_related('user'), pk=pk)
-    if not request.user.is_superuser:
-        return _access_result(
-            request, pk, False,
-            'Управлять правами суперпользователя может только суперпользователь')
     if profile.user_id == request.user.id:
-        return _access_result(request, pk, False, 'Нельзя изменить собственный доступ')
+        return _access_result(request, pk, False, 'Нельзя отключить собственный аккаунт')
 
     user = profile.user
-    if user.is_superuser:
-        user.is_superuser = False
-        user.is_staff = False
-        msg = 'Права суперпользователя сняты'
+    if user.is_active:
+        user.is_active = False
+        msg = 'Аккаунт отключён — вход на сайт запрещён'
     else:
-        user.is_superuser = True
-        user.is_staff = True
-        msg = 'Пользователь назначен суперпользователем'
-    user.save(update_fields=['is_superuser', 'is_staff'])
+        user.is_active = True
+        msg = 'Аккаунт включён — вход на сайт разрешён'
+    user.save(update_fields=['is_active'])
     return _access_result(request, pk, True, msg)
 
 

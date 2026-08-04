@@ -18,7 +18,7 @@ urlpatterns = [
     path('employees/<int:pk>/fire/', views.employee_fire_view, name='employee_fire'),
     path('employees/<int:pk>/reset-password/', views.employee_reset_password_view, name='employee_reset_password'),
     path('employees/<int:pk>/toggle-admin/', views.employee_toggle_admin_view, name='employee_toggle_admin'),
-    path('employees/<int:pk>/toggle-superuser/', views.employee_toggle_superuser_view, name='employee_toggle_superuser'),
+    path('employees/<int:pk>/toggle-active/', views.employee_toggle_active_view, name='employee_toggle_active'),
     path('employees/<int:pk>/delete/', views.employee_delete_view, name='employee_delete'),
 
     path('courses/', views.courses_view, name='courses'),

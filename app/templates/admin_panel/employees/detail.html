@@ -54,9 +54,11 @@
   <h2 class="section__title">{% trans "Права доступа" %}</h2>
   <div class="actions-row">
     <div class="access-badges">
-      {% if is_founder %}<span class="badge badge--info">{% trans "Администратор" %}</span>{% endif %}
-      {% if is_super %}<span class="badge badge--info">{% trans "Суперпользователь" %}</span>{% endif %}
-      {% if not is_founder and not is_super %}<span class="text-dim">{% trans "Обычный сотрудник" %}</span>{% endif %}
+      {% if is_founder %}
+        <span class="badge badge--info">{% trans "Администратор" %}</span>
+      {% else %}
+        <span class="text-dim">{% trans "Обычный сотрудник" %}</span>
+      {% endif %}
     </div>
 
     <form method="post" action="{% url 'admin_panel:employee_toggle_admin' profile.pk %}"
@@ -73,23 +75,31 @@
       {% endif %}
     </form>
 
-    {% if can_grant_super %}
-    <form method="post" action="{% url 'admin_panel:employee_toggle_superuser' profile.pk %}"
+    {% if is_founder %}
+    <form method="post" action="{% url 'admin_panel:employee_toggle_active' profile.pk %}"
           data-ajax
-          data-confirm="{% if is_super %}{% trans 'Снять права суперпользователя?' %}{% else %}{% trans 'Назначить суперпользователем? Он получит полный доступ ко всей системе, включая Django-админку.' %}{% endif %}"
-          data-confirm-title="{% trans 'Права суперпользователя' %}"
-          data-confirm-button="{% if is_super %}{% trans 'Снять' %}{% else %}{% trans 'Назначить' %}{% endif %}"
-          data-confirm-type="{% if is_super %}warning{% else %}danger{% endif %}">
+          data-confirm="{% if profile.user.is_active %}{% trans 'Отключить аккаунт? Пользователь не сможет войти на сайт.' %}{% else %}{% trans 'Включить аккаунт? Пользователь снова сможет войти на сайт.' %}{% endif %}"
+          data-confirm-title="{% trans 'Доступ к сайту' %}"
+          data-confirm-button="{% if profile.user.is_active %}{% trans 'Отключить' %}{% else %}{% trans 'Включить' %}{% endif %}"
+          data-confirm-type="{% if profile.user.is_active %}warning{% else %}success{% endif %}">
       {% csrf_token %}
-      {% if is_super %}
-        <button class="btn btn--warning" type="submit">{% trans "Снять суперпользователя" %}</button>
+      {% if profile.user.is_active %}
+        <button class="btn btn--warning" type="submit">{% trans "Отключить аккаунт" %}</button>
       {% else %}
-        <button class="btn btn--danger-outline" type="submit">{% trans "Сделать суперпользователем" %}</button>
+        <button class="btn btn--success" type="submit">{% trans "Включить аккаунт" %}</button>
       {% endif %}
+    </form>
+
+    <form method="post" action="{% url 'admin_panel:employee_delete' profile.pk %}"
+          data-ajax data-confirm="{% trans 'Удалить аккаунт навсегда? Это действие нельзя отменить.' %}"
+          data-confirm-title="{% trans 'Удалить навсегда' %}" data-confirm-button="{% trans 'Удалить' %}" data-confirm-type="danger"
+          style="margin-left:auto;">
+      {% csrf_token %}
+      <button class="btn btn--danger-outline" type="submit">{% trans "Удалить аккаунт" %}</button>
     </form>
     {% endif %}
   </div>
-  <p class="form__help">{% trans "Администратор — доступ к этой панели управления. Суперпользователь — полный доступ ко всей системе (включая Django-админку)." %}</p>
+  <p class="form__help">{% trans "Администратор — доступ к этой панели управления. Отключение запрещает вход на сайт, удаление стирает аккаунт безвозвратно." %}</p>
 </section>
 {% endif %}
 
