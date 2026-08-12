@@ -28,9 +28,15 @@
 
   {% if kind == 'TEXT' %}
     <div class="form__field form__field--full">
-      <label>{% trans "Содержимое (форматированный текст)" %}</label>
+      <label>🇷🇺 {% trans "Содержимое (форматированный текст)" %}</label>
       {{ form.text }}
       {% if form.text.errors %}<div class="form__error">{{ form.text.errors|join:", " }}</div>{% endif %}
+    </div>
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Содержимое — кыргызча" %}</label>
+      {{ form.text_ky }}
+      <div class="form__help">{% trans "Перевод для кыргызской версии. Пусто — покажется русский текст." %}</div>
+      {% if form.text_ky.errors %}<div class="form__error">{{ form.text_ky.errors|join:", " }}</div>{% endif %}
     </div>
 
   {% elif kind == 'IMAGE' %}
@@ -50,8 +56,12 @@
       {% if form.image.errors %}<div class="form__error">{{ form.image.errors|join:", " }}</div>{% endif %}
     </div>
     <div class="form__field form__field--full">
-      <label>{% trans "Подпись (необязательно)" %}</label>
+      <label>🇷🇺 {% trans "Подпись (необязательно)" %}</label>
       {{ form.caption }}
+    </div>
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Подпись — кыргызча" %}</label>
+      {{ form.caption_ky }}
     </div>
 
   {% elif kind == 'VIDEO' %}
@@ -62,8 +72,12 @@
       {% if form.video_url.errors %}<div class="form__error">{{ form.video_url.errors|join:", " }}</div>{% endif %}
     </div>
     <div class="form__field form__field--full">
-      <label>{% trans "Подпись (необязательно)" %}</label>
+      <label>🇷🇺 {% trans "Подпись (необязательно)" %}</label>
       {{ form.caption }}
+    </div>
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Подпись — кыргызча" %}</label>
+      {{ form.caption_ky }}
     </div>
   {% endif %}
 

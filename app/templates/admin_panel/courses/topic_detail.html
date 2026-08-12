@@ -53,8 +53,12 @@
     {% csrf_token %}
     <div class="form__grid">
       <div class="form__field form__field--full">
-        <label>{% trans "Название урока" %}</label>
+        <label>🇷🇺 {% trans "Название урока" %}</label>
         {{ lesson_form.title }}
+      </div>
+      <div class="form__field form__field--full">
+        <label>🇰🇬 {% trans "Название урока — кыргызча" %}</label>
+        {{ lesson_form.title_ky }}
       </div>
       <div class="form__field">
         <label>{% trans "Тип" %}</label>
@@ -68,8 +72,12 @@
         </label>
       </div>
       <div class="form__field form__field--full">
-        <label>{% trans "Описание (необязательно)" %}</label>
+        <label>🇷🇺 {% trans "Описание (необязательно)" %}</label>
         {{ lesson_form.description }}
+      </div>
+      <div class="form__field form__field--full">
+        <label>🇰🇬 {% trans "Описание — кыргызча (необязательно)" %}</label>
+        {{ lesson_form.description_ky }}
       </div>
     </div>
     <div class="form__actions">

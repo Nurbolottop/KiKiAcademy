@@ -140,7 +140,7 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ('title', 'description', 'icon', 'order')
+        fields = ('title', 'title_ky', 'description', 'description_ky', 'icon', 'order')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -172,15 +172,17 @@ class CourseForm(forms.ModelForm):
 class TopicForm(forms.ModelForm):
     class Meta:
         model = Topic
-        fields = ('title',)
+        fields = ('title', 'title_ky')
 
 
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
-        fields = ('title', 'kind', 'description', 'is_published', 'pass_threshold')
+        fields = ('title', 'title_ky', 'kind', 'description', 'description_ky',
+                  'is_published', 'pass_threshold')
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Краткое введение к уроку…'}),
+            'description_ky': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Кыска киришүү…'}),
             'pass_threshold': forms.NumberInput(attrs={'min': 1, 'max': 100}),
         }
 
@@ -190,28 +192,31 @@ class LessonForm(forms.ModelForm):
 class BlockTextForm(forms.ModelForm):
     class Meta:
         model = LessonBlock
-        fields = ('text',)
+        fields = ('text', 'text_ky')
         widgets = {
             'text': CKEditorUploadingWidget(config_name='admin_panel'),
+            'text_ky': CKEditorUploadingWidget(config_name='admin_panel'),
         }
 
 
 class BlockImageForm(forms.ModelForm):
     class Meta:
         model = LessonBlock
-        fields = ('image', 'caption')
+        fields = ('image', 'caption', 'caption_ky')
         widgets = {
             'caption': forms.TextInput(attrs={'placeholder': 'Подпись (необязательно)'}),
+            'caption_ky': forms.TextInput(attrs={'placeholder': 'Кол коюу (милдеттүү эмес)'}),
         }
 
 
 class BlockVideoForm(forms.ModelForm):
     class Meta:
         model = LessonBlock
-        fields = ('video_url', 'caption')
+        fields = ('video_url', 'caption', 'caption_ky')
         widgets = {
             'video_url': forms.URLInput(attrs={'placeholder': 'https://youtube.com/watch?v=... или https://vimeo.com/...'}),
             'caption': forms.TextInput(attrs={'placeholder': 'Подпись (необязательно)'}),
+            'caption_ky': forms.TextInput(attrs={'placeholder': 'Кол коюу (милдеттүү эмес)'}),
         }
 
 
@@ -220,17 +225,19 @@ class BlockVideoForm(forms.ModelForm):
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
-        fields = ('text',)
+        fields = ('text', 'text_ky')
         widgets = {
             'text': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Текст вопроса…'}),
+            'text_ky': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Суроонун тексти…'}),
         }
 
 
 class AnswerForm(forms.ModelForm):
     class Meta:
         model = Answer
-        fields = ('text', 'is_correct')
+        fields = ('text', 'text_ky', 'is_correct')
         widgets = {
             'text': forms.TextInput(attrs={'placeholder': 'Вариант ответа'}),
+            'text_ky': forms.TextInput(attrs={'placeholder': 'Жооптун варианты'}),
         }
 

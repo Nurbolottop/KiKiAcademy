@@ -14,9 +14,14 @@
 
   <div class="form__grid">
     <div class="form__field form__field--full">
-      <label>{% trans "Название курса" %}</label>
+      <label>🇷🇺 {% trans "Название курса" %}</label>
       {{ form.title }}
       {% if form.title.errors %}<div class="form__error">{{ form.title.errors|join:", " }}</div>{% endif %}
+    </div>
+
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Название курса — кыргызча" %}</label>
+      {{ form.title_ky }}
     </div>
 
     <div class="form__field">
@@ -32,8 +37,13 @@
     </div>
 
     <div class="form__field form__field--full">
-      <label>{% trans "Описание" %}</label>
+      <label>🇷🇺 {% trans "Описание" %}</label>
       {{ form.description }}
+    </div>
+
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Описание — кыргызча" %}</label>
+      {{ form.description_ky }}
     </div>
 
     <div class="form__field form__field--full">

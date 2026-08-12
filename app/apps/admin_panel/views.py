@@ -633,6 +633,7 @@ def topic_edit_view(request, course_pk: int, pk: int):
     if not title:
         return ajax_error('Название обязательно') if is_ajax(request) else redirect('admin_panel:course_detail', pk=course_pk)
     topic.title = title
+    topic.title_ky = (request.POST.get('title_ky') or '').strip()
     topic.save()
     if is_ajax(request):
         return ajax_ok('Тема обновлена', title=topic.title)
@@ -866,6 +867,7 @@ def question_edit_view(request, course_pk: int, topic_pk: int, lesson_pk: int, p
     if not text:
         return ajax_error('Текст вопроса обязателен') if is_ajax(request) else redirect('admin_panel:lesson_edit', course_pk=course_pk, topic_pk=topic_pk, pk=lesson_pk)
     question.text = text
+    question.text_ky = (request.POST.get('text_ky') or '').strip()
     question.save()
     if is_ajax(request):
         return ajax_ok('Вопрос обновлён')

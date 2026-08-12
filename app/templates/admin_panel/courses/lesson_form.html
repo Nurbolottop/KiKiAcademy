@@ -20,8 +20,12 @@
   {% csrf_token %}
   <div class="form__grid">
     <div class="form__field form__field--full">
-      <label>{% trans "Название" %}</label>
+      <label>🇷🇺 {% trans "Название" %}</label>
       {{ form.title }}
+    </div>
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Название — кыргызча" %}</label>
+      {{ form.title_ky }}
     </div>
     <div class="form__field">
       <label>{% trans "Тип урока" %}</label>
@@ -38,8 +42,12 @@
       <div class="form__help">{% trans "Сколько % правильных нужно для прохождения теста (по умолчанию 100)" %}</div>
     </div>
     <div class="form__field form__field--full">
-      <label>{% trans "Описание / введение" %}</label>
+      <label>🇷🇺 {% trans "Описание / введение" %}</label>
       {{ form.description }}
+    </div>
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Описание / введение — кыргызча" %}</label>
+      {{ form.description_ky }}
     </div>
   </div>
   <script>
@@ -131,8 +139,12 @@
         data-ajax data-reload-on-success="true" hidden style="max-width:720px;">
     {% csrf_token %}
     <div class="form__field form__field--full">
-      <label>{% trans "Текст вопроса" %}</label>
+      <label>🇷🇺 {% trans "Текст вопроса" %}</label>
       <textarea name="text" rows="2" required placeholder="{% trans 'Например: Какое моющее средство применяют для…' %}"></textarea>
+    </div>
+    <div class="form__field form__field--full">
+      <label>🇰🇬 {% trans "Текст вопроса — кыргызча" %}</label>
+      <textarea name="text_ky" rows="2" placeholder="{% trans 'Суроонун тексти…' %}"></textarea>
     </div>
     <div class="form__actions">
       <button type="submit" class="btn btn--primary btn--small">{% trans "Создать" %}</button>
@@ -182,7 +194,8 @@
               action="{% url 'admin_panel:answer_create' course.pk topic.pk lesson.pk q.id %}"
               data-ajax data-reload-on-success="true">
           {% csrf_token %}
-          <input type="text" name="text" placeholder="{% trans 'Новый вариант ответа…' %}" required>
+          <input type="text" name="text" placeholder="🇷🇺 {% trans 'Новый вариант ответа…' %}" required>
+          <input type="text" name="text_ky" placeholder="🇰🇬 {% trans 'Жооптун варианты…' %}">
           <label class="switch">
             <input type="checkbox" name="is_correct">
             <span>{% trans "Правильный" %}</span>
