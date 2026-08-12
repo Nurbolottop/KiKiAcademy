@@ -1,7 +1,7 @@
 {% extends 'admin_panel/base.html' %}
 {% load i18n lms_extras %}
 
-{% block title %}{{ lesson.title }}{% endblock %}
+{% block title %}{{ lesson|loc:'title' }}{% endblock %}
 {% block heading %}{% trans "Редактирование урока" %}{% endblock %}
 
 {% block content %}
@@ -9,11 +9,11 @@
 <div class="breadcrumb">
   <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
   <span>›</span>
-  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course.title }}</a>
+  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course|loc:'title' }}</a>
   <span>›</span>
-  <a href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{{ topic.title }}</a>
+  <a href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{{ topic|loc:'title' }}</a>
   <span>›</span>
-  <span>{{ lesson.title }}</span>
+  <span>{{ lesson|loc:'title' }}</span>
 </div>
 
 <form class="form" method="post">
@@ -104,15 +104,15 @@
       </header>
       <div class="block-card__body">
         {% if b.kind == 'TEXT' %}
-          <div class="block-preview">{{ b.text|safe }}</div>
+          <div class="block-preview">{{ b|loc:'text'|safe }}</div>
         {% elif b.kind == 'IMAGE' %}
           {% if b.image %}
-            <img class="block-preview__image" src="{{ b.image.url }}" alt="{{ b.caption }}">
+            <img class="block-preview__image" src="{{ b.image.url }}" alt="{{ b|loc:'caption' }}">
           {% endif %}
-          {% if b.caption %}<div class="block-preview__caption">{{ b.caption }}</div>{% endif %}
+          {% if b.caption %}<div class="block-preview__caption">{{ b|loc:'caption' }}</div>{% endif %}
         {% elif b.kind == 'VIDEO' %}
           {% video_iframe b.video_url %}
-          {% if b.caption %}<div class="block-preview__caption">{{ b.caption }}</div>{% endif %}
+          {% if b.caption %}<div class="block-preview__caption">{{ b|loc:'caption' }}</div>{% endif %}
         {% endif %}
       </div>
     </article>
@@ -160,7 +160,7 @@
       <header class="question-card__head">
         <span class="question-card__handle" data-drag-handle>⋮⋮</span>
         <span class="question-card__num">{{ forloop.counter }}</span>
-        <span class="question-card__text">{{ q.text }}</span>
+        <span class="question-card__text">{{ q|loc:'text' }}</span>
         <div class="question-card__actions">
           <form method="post" action="{% url 'admin_panel:question_delete' course.pk topic.pk lesson.pk q.id %}"
                 data-ajax data-confirm="{% trans 'Удалить вопрос со всеми ответами?' %}"
@@ -180,7 +180,7 @@
                     title="{% trans 'Правильный ответ' %}">
               {% if a.is_correct %}✓{% else %}○{% endif %}
             </button>
-            <span class="answer-row__text">{{ a.text }}</span>
+            <span class="answer-row__text">{{ a|loc:'text' }}</span>
             <form method="post" action="{% url 'admin_panel:answer_delete' course.pk topic.pk lesson.pk q.id a.id %}"
                   data-ajax data-reload-on-success="true">
               {% csrf_token %}

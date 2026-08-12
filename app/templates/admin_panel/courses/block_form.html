@@ -1,5 +1,5 @@
 {% extends 'admin_panel/base.html' %}
-{% load i18n %}
+{% load i18n lms_extras %}
 
 {% block title %}
   {% if mode == 'create' %}{% trans "Новый блок" %}{% else %}{% trans "Редактирование блока" %}{% endif %}
@@ -16,11 +16,11 @@
 <div class="breadcrumb">
   <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
   <span>›</span>
-  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course.title }}</a>
+  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course|loc:'title' }}</a>
   <span>›</span>
-  <a href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{{ topic.title }}</a>
+  <a href="{% url 'admin_panel:topic_detail' course.pk topic.pk %}">{{ topic|loc:'title' }}</a>
   <span>›</span>
-  <a href="{% url 'admin_panel:lesson_edit' course.pk topic.pk lesson.pk %}">{{ lesson.title }}</a>
+  <a href="{% url 'admin_panel:lesson_edit' course.pk topic.pk lesson.pk %}">{{ lesson|loc:'title' }}</a>
 </div>
 
 <form class="form" method="post" enctype="multipart/form-data">

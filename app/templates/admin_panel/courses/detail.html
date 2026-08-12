@@ -1,10 +1,10 @@
 {% extends 'admin_panel/base.html' %}
-{% load i18n %}
+{% load i18n lms_extras %}
 
-{% block title %}{{ course.title }}{% endblock %}
+{% block title %}{{ course|loc:'title' }}{% endblock %}
 {% block heading %}
   <span class="page-title__icon">{{ course.icon|default:"📚" }}</span>
-  {{ course.title }}
+  {{ course|loc:'title' }}
 {% endblock %}
 
 {% block header_actions %}
@@ -16,11 +16,11 @@
 <div class="breadcrumb">
   <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
   <span>›</span>
-  <span>{{ course.title }}</span>
+  <span>{{ course|loc:'title' }}</span>
 </div>
 
 {% if course.description %}
-  <p class="text-dim" style="max-width:900px;">{{ course.description }}</p>
+  <p class="text-dim" style="max-width:900px;">{{ course|loc:'description' }}</p>
 {% endif %}
 
 <div class="course-meta">
@@ -54,7 +54,7 @@
       <div class="topic-row__handle" data-drag-handle title="{% trans 'Перетащить' %}">⋮⋮</div>
       <div class="topic-row__order">{{ forloop.counter }}</div>
       <div class="topic-row__body">
-        <div class="topic-row__title">{{ topic.title }}</div>
+        <div class="topic-row__title">{{ topic|loc:'title' }}</div>
         <div class="topic-row__meta">
           {{ topic.lessons.count }} {% trans "уроков" %}
           ·

@@ -1,5 +1,5 @@
 {% extends 'admin_panel/base.html' %}
-{% load i18n %}
+{% load i18n lms_extras %}
 
 {% block title %}{% trans "Курсы" %}{% endblock %}
 {% block heading %}{% trans "Курсы" %}{% endblock %}
@@ -17,7 +17,7 @@
     <div class="course-card__handle" data-drag-handle title="{% trans 'Перетащить' %}" aria-label="{% trans 'Перетащить' %}">⋮⋮</div>
     <div class="course-card__icon">{{ course.icon|default:"📚" }}</div>
     <div class="course-card__body">
-      <h3 class="course-card__title">{{ course.title }}</h3>
+      <h3 class="course-card__title">{{ course|loc:'title' }}</h3>
       {% if course.description %}
         <p class="course-card__desc">{{ course.description|truncatechars:90 }}</p>
       {% endif %}

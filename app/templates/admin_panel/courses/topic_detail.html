@@ -1,17 +1,17 @@
 {% extends 'admin_panel/base.html' %}
-{% load i18n %}
+{% load i18n lms_extras %}
 
-{% block title %}{{ topic.title }}{% endblock %}
-{% block heading %}{{ topic.title }}{% endblock %}
+{% block title %}{{ topic|loc:'title' }}{% endblock %}
+{% block heading %}{{ topic|loc:'title' }}{% endblock %}
 
 {% block content %}
 
 <div class="breadcrumb">
   <a href="{% url 'admin_panel:courses' %}">{% trans "Курсы" %}</a>
   <span>›</span>
-  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course.title }}</a>
+  <a href="{% url 'admin_panel:course_detail' course.pk %}">{{ course|loc:'title' }}</a>
   <span>›</span>
-  <span>{{ topic.title }}</span>
+  <span>{{ topic|loc:'title' }}</span>
 </div>
 
 <section class="section">
@@ -94,7 +94,7 @@
       <div class="lesson-row__handle" data-drag-handle>⋮⋮</div>
       <div class="lesson-row__icon">{% if lesson.kind == 'QUIZ' %}❓{% else %}📄{% endif %}</div>
       <div class="lesson-row__body">
-        <div class="lesson-row__title">{{ lesson.title }}</div>
+        <div class="lesson-row__title">{{ lesson|loc:'title' }}</div>
         <div class="lesson-row__meta">
           <span class="tag">{{ lesson.get_kind_display }}</span>
           {% if not lesson.is_published %}
