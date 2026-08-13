@@ -36,7 +36,7 @@
   - `apps/` — Django-приложения
     - `apps/base` — базовые сущности (настройки сайта и т.п.)
     - `apps/lms` — LMS-ядро (курсы/уроки/назначения/прогресс)
-- `docker/` — docker-compose и Dockerfile (если используется)
+- `deploy/` — прод-деплой: Dockerfile.prod, docker-compose.prod.yml, nginx, certbot
 
 ## Переменные окружения
 
