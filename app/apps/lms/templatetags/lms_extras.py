@@ -21,13 +21,21 @@ def loc(obj, field):
     return base
 
 
-_YT_RE = re.compile(r'(?:youtu\.be/|youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})')
+# ID ролика YouTube — ровно 11 символов; заглушки вида youtu.be/EXAMPLE не проходят.
+_YT_RE = re.compile(
+    r'(?:youtu\.be/|youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/))'
+    r'([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])'
+)
 _VIMEO_RE = re.compile(r'vimeo\.com/(?:video/)?(\d+)')
 
 
 @register.filter(name='video_embed_url')
 def video_embed_url(url: str) -> str:
-    """Превращает URL YouTube/Vimeo в URL для embed-iframe."""
+    """Превращает URL YouTube/Vimeo в URL для embed-iframe.
+
+    Для пустой, неподдерживаемой или заглушечной ссылки возвращает '' —
+    такой блок не рендерится (иначе у студента сломанный плеер).
+    """
     if not url:
         return ''
     m = _YT_RE.search(url)
@@ -36,7 +44,7 @@ def video_embed_url(url: str) -> str:
     m = _VIMEO_RE.search(url)
     if m:
         return f'https://player.vimeo.com/video/{m.group(1)}'
-    return url
+    return ''
 
 
 @register.simple_tag

@@ -219,6 +219,19 @@ class BlockVideoForm(forms.ModelForm):
             'caption_ky': forms.TextInput(attrs={'placeholder': 'Кол коюу (милдеттүү эмес)'}),
         }
 
+    def clean_video_url(self):
+        from apps.lms.templatetags.lms_extras import video_embed_url
+
+        url = (self.cleaned_data.get('video_url') or '').strip()
+        if not url:
+            raise forms.ValidationError('Укажите ссылку на видео.')
+        if not video_embed_url(url):
+            raise forms.ValidationError(
+                'Не удалось распознать ссылку. Нужна ссылка на конкретный ролик YouTube или Vimeo, '
+                'например https://youtu.be/xOQw2OgdG9U'
+            )
+        return url
+
 
 # ─── QUIZ ─────────────────────────────────────────────────────
 
