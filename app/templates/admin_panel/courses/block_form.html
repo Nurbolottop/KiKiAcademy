@@ -65,6 +65,13 @@
     </div>
 
   {% elif kind == 'VIDEO' %}
+    {% if form.non_field_errors %}<div class="form__error">{{ form.non_field_errors|join:", " }}</div>{% endif %}
+    <div class="form__field form__field--full">
+      <label>{% trans "Видеофайл (mp4, до 45 МБ)" %}</label>
+      {{ form.video_file }}
+      <div class="form__help">{% trans "Загрузите файл или укажите ссылку ниже. Если есть и то и другое — показывается файл." %}</div>
+      {% if form.video_file.errors %}<div class="form__error">{{ form.video_file.errors|join:", " }}</div>{% endif %}
+    </div>
     <div class="form__field form__field--full">
       <label>{% trans "Ссылка на видео (YouTube или Vimeo)" %}</label>
       {{ form.video_url }}

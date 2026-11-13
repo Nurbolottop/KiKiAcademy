@@ -1121,6 +1121,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 8px;
   overflow: hidden;
 }
+.video-embed video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
 .video-embed iframe {
   position: absolute;
   inset: 0;

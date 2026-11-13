@@ -111,10 +111,10 @@
           {% endif %}
           {% if b.caption %}<div class="block-preview__caption">{{ b|loc:'caption' }}</div>{% endif %}
         {% elif b.kind == 'VIDEO' %}
-          {% if b.video_url|video_embed_url %}
-            {% video_iframe b.video_url %}
+          {% if b|has_video %}
+            {% video_player b %}
           {% else %}
-            <div class="form__error">⚠ {% trans "Видео не загружено: нет рабочей ссылки YouTube/Vimeo. Студенты этот блок не видят." %}</div>
+            <div class="form__error">⚠ {% trans "Видео не загружено: нет файла или рабочей ссылки YouTube/Vimeo. Студенты этот блок не видят." %}</div>
           {% endif %}
           {% if b.caption %}<div class="block-preview__caption">{{ b|loc:'caption' }}</div>{% endif %}
         {% endif %}

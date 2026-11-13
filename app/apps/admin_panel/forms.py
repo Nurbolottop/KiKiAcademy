@@ -212,25 +212,40 @@ class BlockImageForm(forms.ModelForm):
 class BlockVideoForm(forms.ModelForm):
     class Meta:
         model = LessonBlock
-        fields = ('video_url', 'caption', 'caption_ky')
+        fields = ('video_file', 'video_url', 'caption', 'caption_ky')
         widgets = {
+            'video_file': forms.ClearableFileInput(attrs={'accept': 'video/mp4,video/webm,video/quicktime,.m4v'}),
             'video_url': forms.URLInput(attrs={'placeholder': 'https://youtube.com/watch?v=... или https://vimeo.com/...'}),
             'caption': forms.TextInput(attrs={'placeholder': 'Подпись (необязательно)'}),
             'caption_ky': forms.TextInput(attrs={'placeholder': 'Кол коюу (милдеттүү эмес)'}),
         }
 
+    MAX_VIDEO_MB = 45  # nginx client_max_body_size = 50M
+
+    def clean_video_file(self):
+        f = self.cleaned_data.get('video_file')
+        if f and hasattr(f, 'size') and f.size > self.MAX_VIDEO_MB * 1024 * 1024:
+            raise forms.ValidationError(
+                f'Файл больше {self.MAX_VIDEO_MB} МБ. Сожмите видео или загрузите его на YouTube и вставьте ссылку.'
+            )
+        return f
+
     def clean_video_url(self):
         from apps.lms.templatetags.lms_extras import video_embed_url
 
         url = (self.cleaned_data.get('video_url') or '').strip()
-        if not url:
-            raise forms.ValidationError('Укажите ссылку на видео.')
-        if not video_embed_url(url):
+        if url and not video_embed_url(url):
             raise forms.ValidationError(
                 'Не удалось распознать ссылку. Нужна ссылка на конкретный ролик YouTube или Vimeo, '
                 'например https://youtu.be/xOQw2OgdG9U'
             )
         return url
+
+    def clean(self):
+        data = super().clean()
+        if not data.get('video_file') and not data.get('video_url'):
+            raise forms.ValidationError('Загрузите видеофайл или укажите ссылку на YouTube/Vimeo.')
+        return data
 
 
 # ─── QUIZ ─────────────────────────────────────────────────────

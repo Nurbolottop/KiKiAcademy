@@ -47,6 +47,26 @@ def video_embed_url(url: str) -> str:
     return ''
 
 
+@register.filter(name='has_video')
+def has_video(block) -> bool:
+    """Есть ли у видеоблока что показать: загруженный файл или рабочая ссылка."""
+    return bool(getattr(block, 'video_file', None)) or bool(video_embed_url(getattr(block, 'video_url', '')))
+
+
+@register.simple_tag
+def video_player(block):
+    """Плеер видеоблока: загруженный файл (<video>) приоритетнее ссылки (iframe)."""
+    f = getattr(block, 'video_file', None)
+    if f:
+        from django.utils.html import format_html
+        return format_html(
+            '<div class="video-embed"><video src="{}" controls preload="metadata" playsinline '
+            'controlslist="nodownload"></video></div>',
+            f.url,
+        )
+    return video_iframe(getattr(block, 'video_url', ''))
+
+
 @register.simple_tag
 def video_iframe(url: str):
     embed = video_embed_url(url)

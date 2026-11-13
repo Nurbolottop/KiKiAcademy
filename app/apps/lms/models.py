@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django_resized.forms import ResizedImageField
 
@@ -136,6 +136,11 @@ class LessonBlock(models.Model):
     caption = models.CharField(max_length=255, blank=True, verbose_name='Подпись')
     caption_ky = models.CharField(max_length=255, blank=True, verbose_name='Подпись (кыргызча)')
     video_url = models.URLField(blank=True, verbose_name='URL видео (YouTube / Vimeo)')
+    video_file = models.FileField(
+        upload_to='lessons/videos/', blank=True, null=True,
+        validators=[FileExtensionValidator(['mp4', 'webm', 'mov', 'm4v'])],
+        verbose_name='Видеофайл (mp4 / webm)',
+    )
 
     class Meta:
         verbose_name = 'Блок урока'

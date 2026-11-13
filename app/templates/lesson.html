@@ -82,9 +82,9 @@
             <img src="{{ b.image.url }}" alt="{{ b|loc:'caption' }}">
             {% if b.caption %}<figcaption>{{ b|loc:'caption' }}</figcaption>{% endif %}
           </figure>
-        {% elif b.kind == 'VIDEO' and b.video_url|video_embed_url %}
+        {% elif b.kind == 'VIDEO' and b|has_video %}
           <div class="lesson-block lesson-block--video">
-            {% video_iframe b.video_url %}
+            {% video_player b %}
             {% if b.caption %}<div class="lesson-caption">{{ b|loc:'caption' }}</div>{% endif %}
           </div>
         {% endif %}
